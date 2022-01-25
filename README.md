@@ -1,5 +1,9 @@
 # ComposeDataSaver
 
+[![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors)
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+
 优雅地在Jetpack Compose中完成数据持久化
 
 ```kotlin
@@ -15,6 +19,36 @@ Switch(checked = booleanExample, onCheckedChange = {
 - [x] 低耦合：抽象接口，不限制底层保存算法实现
 - [x] 轻巧：默认不引入除Compose外任何第三方库
 - [x] 灵活：支持基本的数据类型和自定义类型
+
+
+
+<img src="https://gitee.com/funnysaltyfish/blog-drawing-bed/raw/master/img/202201251711405.png" alt="Example" style="zoom:30%;" />
+
+
+
+---
+
+## 引入
+
+在`settings.gradle`引入jitpack仓库位置
+
+```bash
+dependencyResolutionManagement {
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
+在项目`build.gradle`引入
+
+```bash
+dependencies {
+        implementation 'com.github.FunnySaltyFish:ComposeDataSaver:v1.0.0'
+}
+```
+
+
 
 
 
@@ -105,4 +139,7 @@ registerTypeConverters(ExampleBean::class.java) {
 1. 如果在某些情况下你不想频繁持久化保存，可设置`rememberDataSaverState`的`autoSave`参数为`false`，此时对象的赋值操作将不会执行持久化操作，您在需要保存的位置手动保存：`LocalDataSaver.current.saveData()`
 
    
+
+```bash
+```
 
