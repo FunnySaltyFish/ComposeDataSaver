@@ -138,8 +138,3 @@ registerTypeConverters(ExampleBean::class.java) {
 
 1. 如果在某些情况下你不想频繁持久化保存，可设置`rememberDataSaverState`的`autoSave`参数为`false`，此时对象的赋值操作将不会执行持久化操作，您在需要保存的位置手动保存：`LocalDataSaver.current.saveData()`
 
-   
-
-```bash
-```
-
