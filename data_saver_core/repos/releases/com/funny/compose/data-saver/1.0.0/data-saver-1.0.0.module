@@ -1,0 +1,74 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.funny.compose",
+    "module": "data-saver",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.0.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "data-saver-1.0.0.aar",
+          "url": "data-saver-1.0.0.aar",
+          "size": 12609,
+          "sha512": "0abd6002f51694ef970905b069a482b4630dadea4df85577717cb176a6783fe88877d73b2805dedc39ccc8c92a2a37fd7667daf534140f078a2d255ed10519ad",
+          "sha256": "f27afd710b42bdff3ad923ac70052f05410ab0f195b4cfbc6c599f667a8295c4",
+          "sha1": "e90d1e1df42573156140d7ba25fe5df18b94b71c",
+          "md5": "5e40de6ffee85095ee716fdcbfea91a3"
+        }
+      ]
+    },
+    {
+      "name": "releaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "androidx.compose.ui",
+          "module": "ui",
+          "version": {
+            "requires": "1.1.0-rc01"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.6.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "data-saver-1.0.0.aar",
+          "url": "data-saver-1.0.0.aar",
+          "size": 12609,
+          "sha512": "0abd6002f51694ef970905b069a482b4630dadea4df85577717cb176a6783fe88877d73b2805dedc39ccc8c92a2a37fd7667daf534140f078a2d255ed10519ad",
+          "sha256": "f27afd710b42bdff3ad923ac70052f05410ab0f195b4cfbc6c599f667a8295c4",
+          "sha1": "e90d1e1df42573156140d7ba25fe5df18b94b71c",
+          "md5": "5e40de6ffee85095ee716fdcbfea91a3"
+        }
+      ]
+    }
+  ]
+}
