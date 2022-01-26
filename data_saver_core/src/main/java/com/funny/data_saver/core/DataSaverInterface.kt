@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 
+/**
+ * key interface
+ */
 interface DataSaverInterface{
     fun <T> saveData(key:String, data : T)
     fun <T> readData(key: String, default : T) : T
@@ -12,10 +15,17 @@ interface DataSaverInterface{
 //    fun <T> saveDataBean(key: String, clazz: Class<T>, default : T)
 }
 
+/**
+ * Default implementation using [SharedPreferences] to save data
+ */
 class DataSaverPreferences : DataSaverInterface {
     companion object {
         lateinit var preference: SharedPreferences
 
+        /**
+         * this method should be called to do initialization
+         * @param context Context
+         */
         fun setContext(context: Context) {
             preference = context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE)
         }
@@ -53,6 +63,10 @@ class DataSaverPreferences : DataSaverInterface {
     override fun <T> readData(key: String, default: T): T = getPreference(key, default)
 }
 
+/**
+ * You can call `LocalDataSaver.current` inside a [androidx.compose.runtime.Composable] to
+ * get the instance you've provided. You can call `readData` and `SaveData` then.
+ */
 var LocalDataSaver : ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
     error("No instance of DataSaveInterface is provided")
 }

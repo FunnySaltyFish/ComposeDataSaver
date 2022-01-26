@@ -3,7 +3,7 @@
 | [![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 
-An elegant way to do data persistance in Jetpack Compose.
+An elegant way to do data persistence in Jetpack Compose.
 
 ```kotlin
 var booleanExample by rememberDataSaverState(KEY_BOOLEAN_EXAMPLE, false)
@@ -48,9 +48,6 @@ dependencies {
 ```
 
 
-
-
-
 ## Basic Usage
 
 This library uses classes which implements interface `DataSaverInterface` to save data，thus you need to provide an instance of it.
@@ -82,8 +79,26 @@ booleanExample = true
 So that's it !
 
 
-
 ## Custom storage framework
+We provide the basic implementations of using [MMKV](https://github.com/Tencent/MMKV) or [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore).
+
+### MMKV
+1. Add extra implementations as below:
+
+2. Initialize it as below:
+```kotlin
+MMKV.initialize(applicationContext)
+val dataSaverMMKV = DataSaverMMKV().apply {
+    setKV(newKV = MMKV.defaultMMKV())
+}
+
+CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
+    // ...
+}
+```
+
+### DataStorePreference
+
 
 Just need to implement interface`DataSaverInterface` and override`saveData` and `readData` methods.
 
@@ -136,7 +151,7 @@ To check the full code, see [example](/app/src/main/java/com/funny/composedatasa
 
 ## Other Settings
 
-1. If in some cases you don't want to do persistance so frequently，you can set `rememberDataSaverState`'s parameter `autoSave` to `false`，At this time, the assignment operation of the object will not execute the persistence operation. You should save data manually at the location you need：
+1. If in some cases you don't want to do persistence so frequently，you can set `rememberDataSaverState`'s parameter `autoSave` to `false`，At this time, the assignment operation of the object will not execute the persistence operation. You should save data manually at the location you need：
 `LocalDataSaver.current.saveData()`
 
 

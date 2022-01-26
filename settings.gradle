@@ -25,3 +25,5 @@ dependencyResolutionManagement {
 rootProject.name = "ComposeDataSaver"
 include ':app'
 include ':data_saver_core'
+include ':data_saver_mmkv'
+include ':data_saver_data_store_preferences'

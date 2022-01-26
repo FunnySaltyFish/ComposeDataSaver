@@ -46,7 +46,7 @@ android {
 
     afterEvaluate {
         publishing {
-            def versionName = "1.0.0"
+            def versionName = version_name
             publications {
                 // Creates a Maven publication called "release".
                 release(MavenPublication) {

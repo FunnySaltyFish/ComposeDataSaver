@@ -42,6 +42,15 @@ class DataSaverMutableState<T>(
     }
 }
 
+/**
+ * This function provide an elegant way to do data persistence.
+ * Check the example in `README.md` to see how to use it.
+ *
+ * @param key String
+ * @param default T default value if it is initialized the first time
+ * @param autoSave Boolean whether to do data persistence each time you do assignment
+ * @return DataSaverMutableState<T>
+ */
 @Composable
 fun <T> rememberDataSaverState(key:String, default:T, autoSave: Boolean = true) : DataSaverMutableState<T> {
     val saverInterface = LocalDataSaver.current
@@ -50,6 +59,14 @@ fun <T> rememberDataSaverState(key:String, default:T, autoSave: Boolean = true) 
     }
 }
 
+/**
+ * Use this function to convert your entity class into basic data type to store.
+ * Check the example of this repository to see how to use it.
+ * [Example](https://github.com/FunnySaltyFish/ComposeDataSaver/blob/master/app/src/main/java/com/funny/composedatasaver/ExampleActivity.kt)
+ *
+ * @param clazz Class<*> exampleBean::class.java
+ * @param func Function1<Any, Any>
+ */
 fun registerTypeConverters(clazz: Class<*>, func: (Any)->Any){
     DataSaverMutableState.typeConverters[clazz] = func
 }
