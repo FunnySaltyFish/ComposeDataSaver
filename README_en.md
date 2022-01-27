@@ -43,7 +43,8 @@ add implementation in module's `build.gradle`
 
 ```bash
 dependencies {
-        implementation 'com.github.FunnySaltyFish:ComposeDataSaver:v1.0.0'
+        implementation 'com.github.FunnySaltyFish.ComposeDataSaver:data-saver:v1.0.2
+'
 }
 ```
 
@@ -84,21 +85,52 @@ We provide the basic implementations of using [MMKV](https://github.com/Tencent/
 
 ### MMKV
 1. Add extra implementations as below:
-
+```bash
+// if you want to use mmkv
+implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-mmkv:v1.0.2"
+implementation 'com.tencent:mmkv:1.2.12'
+```
 2. Initialize it as below:
+
 ```kotlin
 MMKV.initialize(applicationContext)
 val dataSaverMMKV = DataSaverMMKV().apply {
     setKV(newKV = MMKV.defaultMMKV())
 }
 
-CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
+CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
     // ...
 }
 ```
 
+---
+
 ### DataStorePreference
 
+1. Add extra implementations as below:
+```bash
+// if you want to use DataStore
+implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-data-store-preferences:v1.0.2"
+def data_store_version = "1.0.0"
+implementation "androidx.datastore:datastore:$data_store_version"
+implementation "androidx.datastore:datastore-preferences:$data_store_version"
+```
+2. Initialize it as below:
+
+```kotlin
+val Context.dataStore : DataStore<Preferences> by preferencesDataStore("dataStore")
+val dataSaverDataStorePreferences = DataSaverDataStorePreferences().apply {
+	setDataStorePreferences(applicationContext.dataStore)
+}
+
+CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
+    // ...
+}
+```
+
+---
+
+### Others
 
 Just need to implement interface`DataSaverInterface` and override`saveData` and `readData` methods.
 

@@ -1,8 +1,7 @@
 # ComposeDataSaver
 
-[![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors)
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+| [![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
 
 优雅地在Jetpack Compose中完成数据持久化
 
@@ -44,7 +43,8 @@ dependencyResolutionManagement {
 
 ```bash
 dependencies {
-        implementation 'com.github.FunnySaltyFish:ComposeDataSaver:v1.0.0'
+        implementation 'com.github.FunnySaltyFish.ComposeDataSaver:data-saver:v1.0.2
+'
 }
 ```
 
@@ -85,6 +85,62 @@ booleanExample = true
 
 
 ## 自定义存储框架
+
+我们提供了基于 [MMKV](https://github.com/Tencent/MMKV) 或者 [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) 的简单实现
+
+### MMKV
+
+1. 在上述依赖基础上，额外添加
+
+```bash
+// if you want to use mmkv
+implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-mmkv:v1.0.2"
+implementation 'com.tencent:mmkv:1.2.12'
+```
+
+2. 如下初始化
+
+```kotlin
+MMKV.initialize(applicationContext)
+val dataSaverMMKV = DataSaverMMKV().apply {
+    setKV(newKV = MMKV.defaultMMKV())
+}
+
+CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
+    // ...
+}
+```
+
+---
+
+### DataStorePreference
+
+1. 在上述依赖基础上，额外添加
+
+```bash
+// if you want to use DataStore
+implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-data-store-preferences:v1.0.2"
+def data_store_version = "1.0.0"
+implementation "androidx.datastore:datastore:$data_store_version"
+implementation "androidx.datastore:datastore-preferences:$data_store_version"
+```
+
+2. 如下初始化
+
+```kotlin
+val Context.dataStore : DataStore<Preferences> by preferencesDataStore("dataStore")
+val dataSaverDataStorePreferences = DataSaverDataStorePreferences().apply {
+	setDataStorePreferences(applicationContext.dataStore)
+}
+
+CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
+    // ...
+}
+```
+
+---
+
+### 其他存储框架
 
 只需要实现`DataSaverInterface`类，并重写`saveData`和`readData`方法分别用于保存数据和读取数据
 
