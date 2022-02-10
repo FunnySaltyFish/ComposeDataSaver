@@ -3,6 +3,8 @@
 | [![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 
+| [English Version](README_en.md) |
+
 优雅地在Jetpack Compose中完成数据持久化
 
 ```kotlin
