@@ -17,7 +17,6 @@
             <option value="$PROJECT_DIR$/data_saver_mmkv" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

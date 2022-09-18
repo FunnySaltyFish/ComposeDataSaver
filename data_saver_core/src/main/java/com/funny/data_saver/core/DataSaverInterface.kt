@@ -6,13 +6,14 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 
 /**
- * key interface
+ * The interface is used to save/read data. We provide the basic implementation using Preference, DataStore and MMKV.
+ *
+ * If you want to write your own, you need to implement `saveData` and `readData`. Besides, a suspend function `saveDataAsync` is optional(which is equal to `saveData` by default)
  */
 interface DataSaverInterface{
     fun <T> saveData(key:String, data : T)
     fun <T> readData(key: String, default : T) : T
-//    fun <T> readDataBean(key: String, clazz: Class<T>, default : T) : T
-//    fun <T> saveDataBean(key: String, clazz: Class<T>, default : T)
+    suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
 }
 
 /**
@@ -39,7 +40,7 @@ class DataSaverPreferences : DataSaverInterface {
             is Int -> getInt(name, default)
             is Boolean -> getBoolean(name, default)
             is Float -> getFloat(name, default)
-            else -> throw IllegalArgumentException("This type can be get from Preferences")
+            else -> throw IllegalArgumentException("Unable to read $default, this type(${if(default==null)null else default!!::class.java}) cannot be get from Preferences, call [registerTypeConverters] to support it.")
 //            else -> deSerialization(getString(name,serialize(default)).toString())
         }
         return res as T
@@ -65,8 +66,8 @@ class DataSaverPreferences : DataSaverInterface {
 
 /**
  * You can call `LocalDataSaver.current` inside a [androidx.compose.runtime.Composable] to
- * get the instance you've provided. You can call `readData` and `SaveData` then.
+ * get the instance you've provided. You can call `readData` and `saveData` then.
  */
 var LocalDataSaver : ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
-    error("No instance of DataSaveInterface is provided")
+    error("No instance of DataSaveInterface is provided, please call `CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){}` first. See the README of the repo ComposeDataSaver to learn more")
 }

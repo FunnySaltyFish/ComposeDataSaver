@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST", "UNUSED")
+
 package com.funny.data_saver_data_store
 
 import androidx.datastore.core.DataStore
@@ -7,6 +9,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
+/**
+ * The implementation using [PreferenceDataStore] to save data. And because DataStore supports coroutine,
+ * so does this.
+ */
 class DataSaverDataStorePreferences : DataSaverInterface {
     companion object {
         private lateinit var dataStore : DataStore<Preferences>
@@ -22,6 +28,9 @@ class DataSaverDataStorePreferences : DataSaverInterface {
     override fun <T> saveData(key: String, data: T) {
         runBlocking { put(dataStore, key, data) }
     }
+
+    override suspend fun <T> saveDataAsync(key: String, data: T)
+        = put(dataStore, key, data)
 
     // Reference：https://blog.csdn.net/qq_36707431/article/details/119447093
     private suspend fun <T> get(dataStore: DataStore<Preferences>, key: String, default: T): T {
@@ -75,6 +84,4 @@ class DataSaverDataStorePreferences : DataSaverInterface {
             }
         }
     }
-    
-
 }

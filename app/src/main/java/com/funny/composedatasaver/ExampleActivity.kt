@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.graphics.Color
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -18,6 +20,7 @@ import com.funny.data_saver.core.registerTypeConverters
 import com.funny.data_saver_data_store.DataSaverDataStorePreferences
 import com.funny.data_saver_data_store.DataSaverDataStorePreferences.Companion.setDataStorePreferences
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -45,10 +48,10 @@ class ExampleActivity : ComponentActivity() {
 //        }
 
         // cause we want to save custom bean, we provide a converter to convert it into String
-        registerTypeConverters(ExampleBean::class.java) {
-            val bean = it as ExampleBean
-            Json.encodeToString(bean)
-        }
+        registerTypeConverters<ExampleBean>(
+            save = { bean -> Json.encodeToString(bean) },
+            restore = { str -> Json.decodeFromString(str) }
+        )
 
         setContent {
             FunnyTheme {
