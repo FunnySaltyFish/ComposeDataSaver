@@ -21,6 +21,8 @@ Switch(checked = booleanExample, onCheckedChange = {
 - [x] 轻巧：默认不引入除Compose外任何第三方库
 - [x] 强大：支持基本的数据类型和自定义类型、支持List类型
 
+**注：此库是对Compose中使用其他框架（比如Preference、MMKV、DataStore）的封装，不是一个单独的数据保存框架**。您可以参考[此链接](https://juejin.cn/post/7144750071156834312)以了解它的设计思想。
+
 
 
 <img src="screenshot.png" alt="Example" style="zoom: 25%;" />
