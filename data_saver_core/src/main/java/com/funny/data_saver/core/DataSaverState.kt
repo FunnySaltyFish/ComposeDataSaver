@@ -169,7 +169,7 @@ inline fun <reified T> rememberDataSaverState(
     var state: DataSaverMutableState<T>? = null
     DisposableEffect(key, savePolicy) {
         onDispose {
-            Log.d("rememberDataSaver", "rememberDataSaverState: onDisposed!")
+            if (DataSaverConfig.DEBUG) Log.d("rememberDataSaver", "rememberDataSaverState: onDisposed!")
             if (savePolicy == SavePolicy.DISPOSED && state != null && state!!.valueChangedSinceInit()) {
                 state!!.saveData()
             }

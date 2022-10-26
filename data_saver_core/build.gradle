@@ -2,18 +2,6 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'maven-publish'
-    id 'org.jetbrains.dokka' version "1.6.10"
-}
-
-//打包main目录下代码和资源的 task
-task generateSourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
-}
-
-task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
-    from dokkaJavadoc.outputDirectory
-    classifier 'javadoc'
 }
 
 
@@ -51,7 +39,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion "1.1.0-rc01"
+        kotlinCompilerExtensionVersion compose_version
     }
 
     publishing {
@@ -67,10 +55,6 @@ afterEvaluate {
             release(MavenPublication) {
                 // Applies the component for the release build variant.
                 from components.release
-                artifacts {
-                    archives javadocJar
-                    archives generateSourcesJar
-                }
 
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.funny.compose'
@@ -78,24 +62,11 @@ afterEvaluate {
                 version = versionName
             }
         }
-        repositories {
-            maven {
-                // change URLs to point to your repos, e.g. http://my.org/repo
-                def baseUrl = buildDir.getParent()
-                def releasesRepoUrl = "$baseUrl/repos/releases"
-                def snapshotsRepoUrl = "$baseUrl/repos/snapshots"
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            }
-        }
     }
 }
 
 dependencies {
-    def compose_version = "1.1.0-rc01"
     implementation "androidx.compose.ui:ui:$compose_version"
-
-    // kotlin
-    def kotlin_version = "1.6.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     testImplementation 'junit:junit:4.13.2'
