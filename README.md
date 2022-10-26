@@ -8,10 +8,11 @@
 优雅地在Jetpack Compose中完成数据持久化
 
 ```kotlin
-var booleanExample by rememberDataSaverState("KEY_BOOLEAN_EXAMPLE", false)
-Switch(checked = booleanExample, onCheckedChange = {
-	booleanExample = it
-})
+// booleanExample 初始化值为false
+// 之后会自动读取本地数据
+var booleanExample by rememberDataSaverState(KEY_BOOLEAN_EXAMPLE, false)
+// 直接赋值即可完成持久化
+booleanExample = true
 ```
 
 
@@ -47,7 +48,7 @@ dependencyResolutionManagement {
 
 ```bash
 dependencies {
-        implementation 'com.github.FunnySaltyFish.ComposeDataSaver:data-saver:{tag}'
+    implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver:{tag}"
 }
 ```
 
@@ -89,6 +90,36 @@ onClick = { listExample = listExample.dropLast(1) }
 
 通过赋值，数据即可自动转换、存于本地。就这么简单！
 
+
+## 在Composable函数外使用
+
+有些情况下，您可能需要将 `DataSaverState` 置于 `@Composable` 函数外面，比如放在 `ViewModel` 中。v1.1.0提供了 `mutableDataSavarStateOf` 函数用于此用途，该函数将会自动读取并转换已保存的值，并返回State。
+
+此函数签名如下：
+
+```Kotlin
+/**
+ * This function READ AND CONVERT the saved data and return a [DataSaverMutableState].
+ * Check the example in `README.md` to see how to use it.
+ *
+ * 此函数 **读取并转换** 已保存的数据，返回 [DataSaverMutableState]
+ *
+ * @param key String 键
+ * @param initialValue T 如果本地还没保存过值，此值将作为初始值；其他情况下会读取已保存值
+ * @param savePolicy 管理是否。何时做持久化操作，见 [SavePolicy]
+ * @param async 是否异步做持久化
+ * @return DataSaverMutableState<T>
+ *
+ * @see DataSaverMutableState
+ */
+inline fun <reified T> mutableDataSaverStateOf(
+    dataSaverInterface: DataSaverInterface,
+    key: String,
+    initialValue: T,
+    savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
+    async: Boolean = true
+): DataSaverMutableState<T>
+```
 
 
 ## 自定义存储框架
@@ -137,7 +168,7 @@ implementation "androidx.datastore:datastore-preferences:$data_store_version"
 ```kotlin
 val Context.dataStore : DataStore<Preferences> by preferencesDataStore("dataStore")
 val dataSaverDataStorePreferences = DataSaverDataStorePreferences().apply {
-	setDataStorePreferences(applicationContext.dataStore)
+    setDataStorePreferences(applicationContext.dataStore)
 }
 
 CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
@@ -164,7 +195,7 @@ interface DataSaverInterface{
 ```kotlin
 val dataSaverXXX = DataSaverXXX()
 CompositionLocalProvider(LocalDataSaver provides dataSaverXXX){
-	ExampleComposable()
+    ExampleComposable()
 }
 ```
 
@@ -192,6 +223,7 @@ data class ExampleBean(var id:Int, val label:String)
 
 // 在初始化时调用registerTypeConverters方法注册对应转换方法
 // 该方法接收两个参数：分别用于 转成可序列化类型以保存 和 反序列化为您的Bean
+// 此处使用 Json.encodeToString 和 Json.decodeFromString， 您也可以用 Gson、Fastjson 等
 registerTypeConverters<ExampleBean>(
 	save = { bean -> Json.encodeToString(bean) },
 	restore = { str -> Json.decodeFromString(str) }
@@ -203,40 +235,6 @@ registerTypeConverters<ExampleBean>(
 
 
 完整例子见 [示例项目](/app/src/main/java/com/funny/composedatasaver/ExampleActivity.kt)
-
-
-
-## 在Composable函数外使用
-
-有些情况下，您可能需要将 `DataSaverState` 置于 `@Composable` 函数外面，比如放在 `ViewModel` 中。v1.1.0提供了 `mutableDataSavarStateOf` 函数用于此用途，该函数将会自动读取并转换已保存的值，并返回State。
-
-此函数签名如下：
-
-```Kotlin
-/**
- * This function READ AND CONVERT the saved data and return a [DataSaverMutableState].
- * Check the example in `README.md` to see how to use it.
- *
- * 此函数 **读取并转换** 已保存的数据，返回 [DataSaverMutableState]
- *
- * @param key String 键
- * @param initialValue T 如果本地还没保存过值，此值将作为初始值；其他情况下会读取已保存值
- * @param savePolicy 管理是否。何时做持久化操作，见 [SavePolicy]
- * @param async 是否异步做持久化
- * @return DataSaverMutableState<T>
- *
- * @see DataSaverMutableState
- */
-inline fun <reified T> mutableDataSaverStateOf(
-    dataSaverInterface: DataSaverInterface,
-    key: String,
-    initialValue: T,
-    savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
-    async: Boolean = true
-): DataSaverMutableState<T>
-```
-
-
 
 
 
