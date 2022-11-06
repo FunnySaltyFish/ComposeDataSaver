@@ -4,7 +4,10 @@ plugins {
     id 'maven-publish'
 }
 
-
+task generateSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier 'sources'
+}
 
 android {
     compileSdk 33
@@ -60,6 +63,10 @@ afterEvaluate {
                 groupId = 'com.funny.compose'
                 artifactId = 'data-saver'
                 version = versionName
+
+                artifacts {
+                    generateSourcesJar
+                }
             }
         }
     }
