@@ -5,8 +5,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.graphics.Color
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,8 +15,9 @@ import com.funny.data_saver.core.DataSaverPreferences
 import com.funny.data_saver.core.DataSaverPreferences.Companion.setContext
 import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver.core.registerTypeConverters
-import com.funny.data_saver_data_store.DataSaverDataStorePreferences
-import com.funny.data_saver_data_store.DataSaverDataStorePreferences.Companion.setDataStorePreferences
+import com.funny.data_saver_mmkv.DataSaverMMKV
+import com.funny.data_saver_mmkv.DataSaverMMKV.Companion.setKV
+import com.tencent.mmkv.MMKV
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -37,10 +36,10 @@ class ExampleActivity : ComponentActivity() {
         }
 
         // If you want to use [MMKV](https://github.com/Tencent/MMKV) to save data
-//        MMKV.initialize(applicationContext)
-//        val dataSaverMMKV = DataSaverMMKV().apply {
-//            setKV(newKV = MMKV.defaultMMKV())
-//        }
+        MMKV.initialize(applicationContext)
+        val dataSaverMMKV = DataSaverMMKV().apply {
+            setKV(newKV = MMKV.defaultMMKV())
+        }
 
         // if you want to use [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) to save data
 //        val dataSaverDataStorePreferences = DataSaverDataStorePreferences().apply {
@@ -55,7 +54,7 @@ class ExampleActivity : ComponentActivity() {
 
         setContent {
             FunnyTheme {
-                CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
+                CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
                     // or LocalDataSaver provides dataSaverMMKV
                     // or LocalDataSaver provides dataSaverDataStorePreferences
                     // or your Class instance

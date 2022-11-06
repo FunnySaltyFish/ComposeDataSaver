@@ -34,39 +34,39 @@ class DataSaverDataStorePreferences : DataSaverInterface {
 
     // Reference：https://blog.csdn.net/qq_36707431/article/details/119447093
     private suspend fun <T> get(dataStore: DataStore<Preferences>, key: String, default: T): T {
-        return when (default!!::class) {
-            Int::class -> {
+        return when (default) {
+            is Int -> {
                 dataStore.data.map { setting ->
                     setting[intPreferencesKey(key)] ?: default
                 }.first() as T
             }
-            Long::class -> {
+            is Long -> {
                 dataStore.data.map { setting ->
                     setting[longPreferencesKey(key)] ?: default
                 }.first() as T
             }
-            Double::class -> {
+            is Double -> {
                 dataStore.data.map { setting ->
                     setting[doublePreferencesKey(key)] ?: default
                 }.first() as T
             }
-            Float::class -> {
+            is Float -> {
                 dataStore.data.map { setting ->
                     setting[floatPreferencesKey(key)] ?: default
                 }.first() as T
             }
-            Boolean::class -> {
+            is Boolean -> {
                 dataStore.data.map { setting ->
                     setting[booleanPreferencesKey(key)]?: default
                 }.first() as T
             }
-            String::class -> {
+            is String -> {
                 dataStore.data.map { setting ->
                     setting[stringPreferencesKey(key)] ?: default
                 }.first() as T
             }
             else -> {
-                throw IllegalArgumentException("This type can be get into DataStore")
+                throw IllegalArgumentException("Unable to read $default, this type(${if (default==null)null else default!!::class.java}) cannot be get from DataStore, call [registerTypeConverters] to support it.")
             }
         }
     }
@@ -80,7 +80,7 @@ class DataSaverDataStorePreferences : DataSaverInterface {
                 is Float -> setting[floatPreferencesKey(key)] = value
                 is Boolean -> setting[booleanPreferencesKey(key)] = value
                 is String -> setting[stringPreferencesKey(key)] = value
-                else -> throw IllegalArgumentException("This type can be saved into DataStore")
+                else -> throw IllegalArgumentException("Unable to save $value, this type(${if (value==null)null else value!!::class.java}) cannot be saved using DataStore, call [registerTypeConverters] to support it.")
             }
         }
     }
