@@ -52,8 +52,8 @@ dependencies {
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
 
-    implementation project(path: ':data_saver_core')
-//    implementation 'com.github.FunnySaltyFish.ComposeDataSaver:data-saver:v1.1.1'
+//    implementation project(path: ':data_saver_core')
+    implementation 'com.github.FunnySaltyFish.ComposeDataSaver:data-saver:v1.1.2'
 
 
     // if you want to use mmkv

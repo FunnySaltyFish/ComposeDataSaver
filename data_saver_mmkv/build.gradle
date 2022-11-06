@@ -62,9 +62,7 @@ afterEvaluate {
                 artifactId = 'data-saver-mmkv'
                 version = versionName
 
-                artifacts {
-                    generateSourcesJar
-                }
+                artifact generateSourcesJar
             }
         }
     }

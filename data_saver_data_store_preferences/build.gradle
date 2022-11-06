@@ -63,9 +63,7 @@ afterEvaluate {
                 artifactId = 'data-saver-data-store-preferences'
                 version = versionName
 
-                artifacts {
-                    generateSourcesJar
-                }
+                artifact generateSourcesJar
             }
         }
     }
