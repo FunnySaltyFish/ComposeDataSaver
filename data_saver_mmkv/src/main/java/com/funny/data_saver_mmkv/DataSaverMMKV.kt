@@ -37,6 +37,8 @@ class DataSaverMMKV : DataSaverInterface {
             is Boolean -> decodeBool(key, default)
             is Float -> decodeFloat(key, default)
             is Double -> decodeDouble(key, default)
+            is Parcelable -> decodeParcelable(key, (default as Parcelable)::class.java) ?: default
+            is ByteArray -> decodeBytes(key, default)!!
             else -> throw IllegalArgumentException("This type of data is not supported!")
         }
         return@with res as T
