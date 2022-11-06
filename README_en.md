@@ -19,7 +19,7 @@ Switch(checked = booleanExample, onCheckedChange = {
 
 - :tada: Brevity: a nearly native style of coding
 - :tada: Low coupling: using abstract interface that does not restrict the implementation of the underlying persistence framework
-- :tada: Lightweight: no third-party libraries other than Compose are included by default
+- :tada: Lightweight: no third-party libraries other than Compose are included by default. (the size of `sources-jar` is only about **10kb** for `core` and **1kb** per optional implementation)
 - :tada: Flexibility: both basic data types and custom beans are supported
 
 
