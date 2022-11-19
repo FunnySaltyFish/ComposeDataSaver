@@ -36,7 +36,6 @@ class DataSaverDataStorePreferences(private val dataStore: DataStore<Preferences
     // Reference：https://blog.csdn.net/qq_36707431/article/details/119447093
     private suspend fun <T> get(dataStore: DataStore<Preferences>, key: String, default: T): T {
         return when (default) {
-            null -> default
             is Int -> {
                 dataStore.data.map { setting ->
                     setting[intPreferencesKey(key)] ?: default

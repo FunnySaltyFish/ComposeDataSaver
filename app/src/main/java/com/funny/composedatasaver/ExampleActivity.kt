@@ -11,12 +11,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.funny.composedatasaver.ui.ExampleBean
 import com.funny.composedatasaver.ui.ExampleComposable
 import com.funny.composedatasaver.ui.theme.FunnyTheme
-import com.funny.data_saver.core.DataSaverPreferences
-import com.funny.data_saver.core.DataSaverPreferences.Companion.setContext
+import com.funny.data_saver.core.DataSaverConverter.registerTypeConverters
 import com.funny.data_saver.core.LocalDataSaver
-import com.funny.data_saver.core.registerTypeConverters
-import com.funny.data_saver_mmkv.DataSaverMMKV
-import com.funny.data_saver_mmkv.DataSaverMMKV.Companion.setKV
+import com.funny.data_saver_mmkv.DefaultDataSaverMMKV
 import com.tencent.mmkv.MMKV
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
@@ -31,23 +28,18 @@ class ExampleActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // init preferences
-        val dataSaverPreferences = DataSaverPreferences().apply {
-            setContext(context = applicationContext)
-        }
+        // val dataSaverPreferences = DataSaverPreferences(applicationContext)
 
         // If you want to use [MMKV](https://github.com/Tencent/MMKV) to save data
         MMKV.initialize(applicationContext)
-        val dataSaverMMKV = DataSaverMMKV().apply {
-            setKV(newKV = MMKV.defaultMMKV())
-        }
+        val dataSaverMMKV = DefaultDataSaverMMKV
+        // you can use DefaultDataSaverMMKV like `DefaultDataSaverMMKV.readData(key, default)` and `DefaultDataSaverMMKV.saveData(key, value) anywhere`
 
         // if you want to use [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) to save data
-//        val dataSaverDataStorePreferences = DataSaverDataStorePreferences().apply {
-//            setDataStorePreferences(applicationContext.dataStore)
-//        }
+        // val dataSaverDataStorePreferences = DataSaverDataStorePreferences(applicationContext.dataStore)
 
         // cause we want to save custom bean, we provide a converter to convert it into String
-        registerTypeConverters<ExampleBean>(
+        registerTypeConverters<ExampleBean?>(
             save = { bean -> Json.encodeToString(bean) },
             restore = { str -> Json.decodeFromString(str) }
         )

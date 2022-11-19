@@ -15,7 +15,7 @@ open class SavePolicy {
 
     /**
      * do data persistence when the Composable enters `onDispose`. NOTE: USE THIS MODE CAREFULLY, BECAUSE SOMETIME
-     * `onDispose` will not be called
+     * `onDispose` WILL NOT BE CALLED
      *
      * Composable `onDispose` 时做数据持久化，适合数据变动比较频繁、且此Composable会进入onDispose的情况。
      * **慎用此模式，因为有些情况下onDispose不会被回调**
