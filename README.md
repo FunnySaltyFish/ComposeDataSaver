@@ -62,9 +62,7 @@ dependencies {
 
 ```kotlin
 // init preferences
-val dataSaverPreferences = DataSaverPreferences().apply {
-	setContext(context = applicationContext)
-}
+val dataSaverPreferences = DataSaverPreferences(applicationContext)
 CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
 	ExampleComposable()
 }
@@ -135,16 +133,18 @@ inline fun <reified T> mutableDataSaverStateOf(
 ```bash
 // if you want to use mmkv
 implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-mmkv:{tag}"
-implementation 'com.tencent:mmkv:1.2.12'
+implementation 'com.tencent:mmkv:1.2.14'
 ```
 
 2. 如下初始化
 
 ```kotlin
 MMKV.initialize(applicationContext)
-val dataSaverMMKV = DataSaverMMKV().apply {
-    setKV(newKV = MMKV.defaultMMKV())
-}
+...
+
+val dataSaverMMKV = DefaultDataSaverMMKV
+// DefaultDataSaverMMKV 是我们提供的默认实现，您可以在任何地方使用它，就像一个 MMKVUtils 那样
+// 如果有定制 MMKV 的需要，可以选择 DataSaverMMKV(MMKV.defaultMMKV())
 
 CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
     // ...
@@ -169,14 +169,29 @@ implementation "androidx.datastore:datastore-preferences:$data_store_version"
 
 ```kotlin
 val Context.dataStore : DataStore<Preferences> by preferencesDataStore("dataStore")
-val dataSaverDataStorePreferences = DataSaverDataStorePreferences().apply {
-    setDataStorePreferences(applicationContext.dataStore)
-}
+val dataSaverDataStorePreferences = DataSaverDataStorePreferences(applicationContext.dataStore)
 
 CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
     // ...
 }
 ```
+
+
+
+三者默认支持的类型如下所示
+
+|   类型    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences |
+| :-------: | :-----------------: | :-----------: | :---------------------------: |
+|    Int    |          Y          |       Y       |               Y               |
+|  Boolean  |          Y          |       Y       |               Y               |
+|  String   |          Y          |       Y       |               Y               |
+|   Long    |          Y          |       Y       |               Y               |
+|   Float   |          Y          |       Y       |               Y               |
+|  Double   |                     |       Y       |               Y               |
+| Parceable |                     |       Y       |                               |
+| ByteArray |                     |       Y       |                               |
+
+更多类型的支持请参见 [保存自定义类型](#保存自定义类型)
 
 ---
 
@@ -189,6 +204,7 @@ interface DataSaverInterface{
     fun <T> saveData(key:String, data : T)
     fun <T> readData(key: String, default : T) : T
     suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
+    fun remove(key: String)
 }
 ```
 
@@ -213,7 +229,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverXXX){
 因为默认的`DataSaverPreferences`并不提供自定义类型的保存（当尝试这样做时会报错），所以您可以从以下两种方式中**任选其一**以保存自定义数据。
 
 
-1. 通过`registerTypeConverters`将实体类序列化为其他基本类型（如String）再储存
+1. 通过`DataSaverConverter.registerTypeConverters`将实体类序列化为 String 再储存
 2. 重写自己的`DataSaverInterface`实现类（见上）并实现相关的保存方法
 
 对于第一种方式，您需要为对应实体类添加转换器，以实现保存时自动转换为String、并从String还原。方法如下：
@@ -293,6 +309,29 @@ object DataSaverConfig {
 v1.1.0 对`DataSaverInterface` 新增了 `suspend fun saveDataAsync` ，用于异步保存。默认情况下，它等同于 `saveData`。对于支持协程的框架（如`DataStore`），使用此实现有助于充分利用协程优势（默认给出的`DataStorePreference`就是如此）。
 
 在`mutableDataSavarStateOf` 和 `rememberMutableDataSavarState` 函数调用处可以设置`async`以启用异步保存，默认为`true`。
+
+
+
+### Null 支持
+
+v1.1.4 放宽了自定义类型时为 `null` 的情况，可以通过
+
+```kotlin
+registerTypeConverters<ExampleBean?>(
+    save = { bean -> Json.encodeToString(bean) },
+    restore = { str -> Json.decodeFromString(str) }
+)
+```
+
+来支持 `null` 作默认值
+
+```kotlin
+val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> = rememberDataSaverState(key = "nullable_bean", initialValue = null)
+```
+
+请注意，出于代码的实现上的考虑，设置 `state.value = null` 或 `dataSaverInterface.saveData(key, null)` 实际**将调用对应 `remove` 方法直接移除对应值**
+
+
 
 
 

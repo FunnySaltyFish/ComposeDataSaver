@@ -13,6 +13,7 @@ import com.funny.composedatasaver.ui.ExampleComposable
 import com.funny.composedatasaver.ui.theme.FunnyTheme
 import com.funny.data_saver.core.DataSaverConverter.registerTypeConverters
 import com.funny.data_saver.core.LocalDataSaver
+import com.funny.data_saver_mmkv.DataSaverMMKV
 import com.funny.data_saver_mmkv.DefaultDataSaverMMKV
 import com.tencent.mmkv.MMKV
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -33,6 +34,7 @@ class ExampleActivity : ComponentActivity() {
         // If you want to use [MMKV](https://github.com/Tencent/MMKV) to save data
         MMKV.initialize(applicationContext)
         val dataSaverMMKV = DefaultDataSaverMMKV
+        // or DataSaverMMKV(MMKV.defaultMMKV())
         // you can use DefaultDataSaverMMKV like `DefaultDataSaverMMKV.readData(key, default)` and `DefaultDataSaverMMKV.saveData(key, value) anywhere`
 
         // if you want to use [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) to save data
