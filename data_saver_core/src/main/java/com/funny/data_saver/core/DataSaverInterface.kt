@@ -14,54 +14,45 @@ interface DataSaverInterface{
     fun <T> saveData(key:String, data : T)
     fun <T> readData(key: String, default : T) : T
     suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
+    fun remove(key: String)
 }
 
 /**
  * Default implementation using [SharedPreferences] to save data
  */
-class DataSaverPreferences : DataSaverInterface {
-    companion object {
-        lateinit var preference: SharedPreferences
+class DataSaverPreferences(private val preference: SharedPreferences) : DataSaverInterface {
+    constructor(context: Context): this(context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE))
 
-        /**
-         * this method should be called to do initialization
-         * @param context Context
-         */
-        fun setContext(context: Context) {
-            preference = context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE)
-        }
+    override fun <T> saveData(key: String, data: T) = with(preference.edit()) {
+        when (data) {
+            null -> {
+                this@DataSaverPreferences.remove(key)
+                return@with
+            }
+            is Long -> putLong(key, data)
+            is Int -> putInt(key, data)
+            is String -> putString(key, data)
+            is Boolean -> putBoolean(key, data)
+            is Float -> putFloat(key, data)
+            else -> throw IllegalArgumentException("Unable to save $data, this type(${data!!::class.java}) cannot be saved using SharedPreferences, call [registerTypeConverters] to support it.")
+        }.apply()
     }
 
-
-    private fun <T> getPreference(name: String, default: T): T = with(preference) {
+    override fun <T> readData(key: String, default: T): T = with(preference) {
         val res: Any = when (default) {
-            is Long -> getLong(name, default)
-            is String -> this.getString(name, default)!!
-            is Int -> getInt(name, default)
-            is Boolean -> getBoolean(name, default)
-            is Float -> getFloat(name, default)
-            else -> throw IllegalArgumentException("Unable to read $default, this type(${if(default==null)null else default!!::class.java}) cannot be get from Preferences, call [registerTypeConverters] to support it.")
-//            else -> deSerialization(getString(name,serialize(default)).toString())
+            is Long -> getLong(key, default)
+            is String -> this.getString(key, default)!!
+            is Int -> getInt(key, default)
+            is Boolean -> getBoolean(key, default)
+            is Float -> getFloat(key, default)
+            else -> throw IllegalArgumentException("Unable to read $default, this type(${default!!::class.java}) cannot be get from Preferences, call [registerTypeConverters] to support it.")
         }
         return res as T
     }
 
-    private fun <T> putPreference(name: String, value: T) = with(preference.edit()) {
-        when (value) {
-            is Long -> putLong(name, value)
-            is Int -> putInt(name, value)
-            is String -> putString(name, value)
-            is Boolean -> putBoolean(name, value)
-            is Float -> putFloat(name, value)
-            else -> throw IllegalArgumentException("This type can be saved into Preferences")
-        }.apply()
+    override fun remove(key: String) {
+        preference.edit().remove(key).apply()
     }
-
-    override fun <T> saveData(key: String, data: T) {
-        putPreference(key, data)
-    }
-
-    override fun <T> readData(key: String, default: T): T = getPreference(key, default)
 }
 
 /**

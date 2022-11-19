@@ -4,16 +4,12 @@ import android.os.Parcelable
 import com.funny.data_saver.core.DataSaverInterface
 import com.tencent.mmkv.MMKV
 
-class DataSaverMMKV : DataSaverInterface {
-    companion object {
-        lateinit var kv: MMKV
-        fun setKV(newKV: MMKV) {
-            kv = newKV
-        }
-    }
-
-
+class DataSaverMMKV(private val kv: MMKV) : DataSaverInterface {
     override fun <T> saveData(key: String, data: T) {
+        if (data == null){
+            remove(key)
+            return
+        }
         with(kv) {
             when (data) {
                 is Long -> encode(key, data)
@@ -24,7 +20,7 @@ class DataSaverMMKV : DataSaverInterface {
                 is Double -> encode(key, data)
                 is Parcelable -> encode(key, data)
                 is ByteArray -> encode(key, data)
-                else -> throw IllegalArgumentException("This type of data is not supported!")
+                else -> throw IllegalArgumentException("Unable to save $data, this type(${data!!::class.java}) cannot be saved to MMKV, call [registerTypeConverters] to support it.")
             }
         }
     }
@@ -39,8 +35,16 @@ class DataSaverMMKV : DataSaverInterface {
             is Double -> decodeDouble(key, default)
             is Parcelable -> decodeParcelable(key, (default as Parcelable)::class.java) ?: default
             is ByteArray -> decodeBytes(key, default)!!
-            else -> throw IllegalArgumentException("This type of data is not supported!")
+            else -> throw IllegalArgumentException("Unable to read $default, this type(${default!!::class.java}) cannot be read from MMKV, call [registerTypeConverters] to support it.")
         }
         return@with res as T
     }
+
+    override fun remove(key: String) {
+        kv.removeValueForKey(key)
+    }
+}
+
+val DefaultDataSaverMMKV by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    DataSaverMMKV(MMKV.defaultMMKV())
 }
