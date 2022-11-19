@@ -2,6 +2,7 @@ package com.funny.data_saver.core
 
 import android.util.Log
 import androidx.compose.runtime.*
+import com.funny.data_saver.core.DataSaverConverter.typeRestoreConverters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class DataSaverMutableListState<T>(
     private val savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     private val async: Boolean = false,
 ) : MutableState<List<T>> {
-    private var list = mutableStateOf(initialValue)
+    private val list = mutableStateOf(initialValue)
 
     override var value: List<T>
         get() = list.value
@@ -57,31 +58,40 @@ class DataSaverMutableListState<T>(
         doSetValue(value)
     }
 
-    private fun doSetValue(value: List<T>) {
-        val oldValue = this.list
-        this.list.value = value
-        if (oldValue != value && savePolicy == SavePolicy.IMMEDIATELY)
-            saveData()
-    }
-
     operator fun getValue(thisObj: Any?, property: KProperty<*>): List<T> = list.value
 
     fun saveData() {
         val value = value
         if (async) {
             scope.launch {
-                dataSaverInterface.saveData(key, convertListToString(value).also {
+                dataSaverInterface.saveData(key, DataSaverConverter.convertListToString(value).also {
                     log("saveConvertedData(async: $async): $key -> $value(as $it)")
                 })
             }
         } else {
-            dataSaverInterface.saveData(key, convertListToString(value).also {
+            dataSaverInterface.saveData(key, DataSaverConverter.convertListToString(value).also {
                 log("saveConvertedData(async: $async): $key -> $value(as $it)")
             })
         }
     }
 
     fun valueChangedSinceInit() = list.value.deepEquals(initialValue.toList())
+
+    /**
+     * remove the key and set the value to `replacement`
+     * @param replacement List<T> new value of the state, `initialValue` by default
+     */
+    fun remove(replacement: List<T> = initialValue) {
+        dataSaverInterface.remove(key)
+        list.value = replacement
+    }
+
+    private fun doSetValue(value: List<T>) {
+        val oldValue = this.list
+        this.list.value = value
+        if (oldValue != value && savePolicy == SavePolicy.IMMEDIATELY)
+            saveData()
+    }
 
     private fun log(msg: String) {
         if (DataSaverConfig.DEBUG) Log.d(TAG, msg)
@@ -145,7 +155,10 @@ inline fun <reified T : Any> rememberDataSaverListState(
     var state: DataSaverMutableListState<T>? = null
     DisposableEffect(key, savePolicy) {
         onDispose {
-            if (DataSaverConfig.DEBUG) Log.d("rememberDataSaver", "rememberDataSaverState: onDisposed!")
+            if (DataSaverConfig.DEBUG) Log.d(
+                "rememberDataSaver",
+                "rememberDataSaverState: onDisposed!"
+            )
             if (savePolicy == SavePolicy.DISPOSED && state != null && state!!.valueChangedSinceInit()) {
                 state!!.saveData()
             }
@@ -188,7 +201,7 @@ inline fun <reified T> mutableDataSaverListStateOf(
         restore ?: throw e
         val strData = dataSaverInterface.readData(key, "")
         if (strData == "") initialValue
-        else convertStringToList<T>(strData)
+        else DataSaverConverter.convertStringToList<T>(strData)
     }
     return DataSaverMutableListState(dataSaverInterface, key, data, savePolicy, async)
 }

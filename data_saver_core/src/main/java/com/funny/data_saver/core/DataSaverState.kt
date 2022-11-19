@@ -2,6 +2,8 @@ package com.funny.data_saver.core
 
 import android.util.Log
 import androidx.compose.runtime.*
+import com.funny.data_saver.core.DataSaverConverter.typeRestoreConverters
+import com.funny.data_saver.core.DataSaverConverter.typeSaveConverters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,12 +59,6 @@ class DataSaverMutableState<T>(
         doSetValue(value)
     }
 
-    private fun doSetValue(value: T) {
-        val oldValue = this.state.value
-        this.state.value = value
-        if (oldValue != value && savePolicy == SavePolicy.IMMEDIATELY)
-            saveData()
-    }
 
     operator fun getValue(thisObj: Any?, property: KProperty<*>): T = state.value
 
@@ -72,7 +68,10 @@ class DataSaverMutableState<T>(
      * to do that.
      */
     fun saveData() {
-        value ?: error("data must be not be null! (key: $key)")
+        if (value == null){
+            dataSaverInterface.remove(key)
+            return
+        }
         val value = value!!
         if (async) {
             scope.launch {
@@ -99,7 +98,24 @@ class DataSaverMutableState<T>(
         }
     }
 
+    /**
+     * remove the key and set the value to `replacement`
+     * @param replacement List<T> new value of the state, `initialValue` by default
+     */
+    fun remove(replacement: T = initialValue) {
+        dataSaverInterface.remove(key)
+        state.value = replacement
+    }
+
     fun valueChangedSinceInit() = state.value != initialValue
+
+
+    private fun doSetValue(value: T) {
+        val oldValue = this.state.value
+        this.state.value = value
+        if (oldValue != value && savePolicy == SavePolicy.IMMEDIATELY)
+            saveData()
+    }
 
     private fun log(msg: String) {
         if (DataSaverConfig.DEBUG) Log.d(TAG, msg)
@@ -169,14 +185,19 @@ inline fun <reified T> rememberDataSaverState(
     var state: DataSaverMutableState<T>? = null
     DisposableEffect(key, savePolicy) {
         onDispose {
-            if (DataSaverConfig.DEBUG) Log.d("rememberDataSaver", "rememberDataSaverState: onDisposed!")
+            if (DataSaverConfig.DEBUG) Log.d(
+                "rememberDataSaver",
+                "rememberDataSaverState: onDisposed!"
+            )
             if (savePolicy == SavePolicy.DISPOSED && state != null && state!!.valueChangedSinceInit()) {
                 state!!.saveData()
             }
         }
     }
     return remember(saverInterface, key, async) {
-        mutableDataSaverStateOf(saverInterface, key, initialValue, savePolicy, async).also { state = it }
+        mutableDataSaverStateOf(saverInterface, key, initialValue, savePolicy, async).also {
+            state = it
+        }
     }
 }
 
