@@ -1,13 +1,21 @@
 package com.funny.composedatasaver.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +62,7 @@ fun ExampleComposable() {
     // 例如: onClick = { dataSaverState.save() }
     var stringExample by rememberDataSaverState(
         KEY_STRING_EXAMPLE,
-        "",
+        "FunnySaltyFish, tap to input",
         savePolicy = SavePolicy.IMMEDIATELY,
         async = true
     )
@@ -62,6 +70,11 @@ fun ExampleComposable() {
     var booleanExample by rememberDataSaverState(KEY_BOOLEAN_EXAMPLE, false)
 
     var beanExample by rememberDataSaverState(KEY_BEAN_EXAMPLE, default = EmptyBean)
+
+    var themeType: ThemeType by rememberDataSaverState(
+        key = "key_theme_type",
+        default = ThemeType.DynamicNative
+    )
 
     var listExample by rememberDataSaverListState(
         key = "key_list_example", default = listOf(
@@ -110,6 +123,24 @@ fun ExampleComposable() {
             Text(text = "Add bean's id") // id自加
         }
 
+        Text(text = "This is an example of saving custom Sealed Class") // 保存自定义类型的示例
+        Column(Modifier.background(MaterialTheme.colors.surface, RoundedCornerShape(16.dp)).padding(8.dp)) {
+            Text(
+                modifier = Modifier.semantics { heading() },
+                text = "主题/Theme",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            RadioTile(text = "默认", selected = themeType == ThemeType.StaticDefault) {
+                themeType = ThemeType.StaticDefault
+            }
+            RadioTile(text = "动态取色", selected = themeType == ThemeType.DynamicNative) {
+                themeType = ThemeType.DynamicNative
+            }
+        }
+
+
         val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> = rememberDataSaverState(key = "nullable_bean", initialValue = null)
         Text(text = "This is an example of saving custom Data Bean(nullable)") // 保存自定义类型的示例
         Text(text = nullableCustomBeanState.value.toString())
@@ -119,6 +150,7 @@ fun ExampleComposable() {
             }) {
                 Text(text = "Set As Not Null")
             }
+            Spacer(modifier = Modifier.width(4.dp))
             Button(onClick = {
                 nullableCustomBeanState.value = null
                 // nullableCustomBeanState.remove(replacement = EmptyBean)
@@ -146,6 +178,7 @@ fun ExampleComposable() {
                     }) {
                         Text(text = "Add To List")
                     }
+                    Spacer(modifier = Modifier.width(4.dp))
                     Button(onClick = {
                         if (listExample.isNotEmpty()) listExample = listExample.dropLast(1)
                     }) {
@@ -186,4 +219,18 @@ private fun SaveWhenDisposedExample() {
 @Composable
 fun Heading(text: String) {
     Text(text, fontWeight = FontWeight.W600, fontSize = 18.sp)
+}
+
+@Composable
+fun RadioTile(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)) {
+        Text(text = text, fontSize = 24.sp, fontWeight = FontWeight.W700)
+        RadioButton(selected = selected, onClick = onClick)
+    }
 }

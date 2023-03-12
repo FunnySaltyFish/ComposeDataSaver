@@ -43,6 +43,8 @@ class DataSaverMMKV(private val kv: MMKV) : DataSaverInterface {
     override fun remove(key: String) {
         kv.removeValueForKey(key)
     }
+
+    override fun contains(key: String) = kv.containsKey(key)
 }
 
 val DefaultDataSaverMMKV by lazy(LazyThreadSafetyMode.PUBLICATION) {

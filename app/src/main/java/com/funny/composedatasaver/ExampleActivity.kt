@@ -2,6 +2,7 @@ package com.funny.composedatasaver
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
@@ -10,6 +11,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.funny.composedatasaver.ui.ExampleBean
 import com.funny.composedatasaver.ui.ExampleComposable
+import com.funny.composedatasaver.ui.ThemeType
 import com.funny.composedatasaver.ui.theme.FunnyTheme
 import com.funny.data_saver.core.DataSaverConverter.registerTypeConverters
 import com.funny.data_saver.core.LocalDataSaver
@@ -43,8 +45,13 @@ class ExampleActivity : ComponentActivity() {
         // cause we want to save custom bean, we provide a converter to convert it into String
         registerTypeConverters<ExampleBean?>(
             save = { bean -> Json.encodeToString(bean) },
-            restore = { str -> Json.decodeFromString(str) }
+            restore = { str ->
+                Log.d("ExampleActivity", "restore ExampleBean?: $str")
+                Json.decodeFromString(str)
+            }
         )
+
+        registerTypeConverters<ThemeType>(save = ThemeType.Saver, restore = ThemeType.Restorer)
 
         setContent {
             FunnyTheme {

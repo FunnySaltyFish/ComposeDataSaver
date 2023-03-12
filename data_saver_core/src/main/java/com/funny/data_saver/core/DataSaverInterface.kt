@@ -15,6 +15,7 @@ interface DataSaverInterface{
     fun <T> readData(key: String, default : T) : T
     suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
     fun remove(key: String)
+    fun contains(key: String): Boolean
 }
 
 /**
@@ -53,6 +54,8 @@ class DataSaverPreferences(private val preference: SharedPreferences) : DataSave
     override fun remove(key: String) {
         preference.edit().remove(key).apply()
     }
+
+    override fun contains(key: String) = preference.contains(key)
 }
 
 /**

@@ -89,4 +89,12 @@ class DataSaverDataStorePreferences(private val dataStore: DataStore<Preferences
             }
         }
     }
+
+    override fun contains(key: String): Boolean {
+        return runBlocking {
+            dataStore.data.map { setting ->
+                setting.contains(intPreferencesKey(key))
+            }.first()
+        }
+    }
 }

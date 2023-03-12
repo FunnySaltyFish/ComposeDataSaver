@@ -2,10 +2,11 @@ package com.funny.data_saver.core
 
 import android.util.Log
 import androidx.compose.runtime.*
-import com.funny.data_saver.core.DataSaverConverter.typeRestoreConverters
-import com.funny.data_saver.core.DataSaverConverter.typeSaveConverters
+import com.funny.data_saver.core.DataSaverConverter.findRestorer
+import com.funny.data_saver.core.DataSaverConverter.findSaver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
 
@@ -33,6 +34,7 @@ class DataSaverMutableState<T>(
     private val async: Boolean = false
 ) : MutableState<T> {
     private val state = mutableStateOf(initialValue)
+    private var job: Job? = null
 
     override var value: T
         get() = state.value
@@ -74,8 +76,9 @@ class DataSaverMutableState<T>(
         }
         val value = value!!
         if (async) {
-            scope.launch {
-                val typeConverter = typeSaveConverters[value::class.java]
+            job?.cancel()
+            job = scope.launch {
+                val typeConverter = findSaver(value)
                 if (typeConverter != null) {
                     val convertedData = typeConverter(value)
                     log("saveConvertedData(async: $async): $key -> $value(as $convertedData)")
@@ -86,7 +89,7 @@ class DataSaverMutableState<T>(
                 }
             }
         } else {
-            val typeConverter = typeSaveConverters[value::class.java]
+            val typeConverter = findSaver(value)
             if (typeConverter != null) {
                 val convertedData = typeConverter(value)
                 log("saveConvertedData(async: $async): $key -> $value(as $convertedData)")
@@ -105,6 +108,7 @@ class DataSaverMutableState<T>(
     fun remove(replacement: T = initialValue) {
         dataSaverInterface.remove(key)
         state.value = replacement
+        log("remove: key: $key, replace the value to $replacement")
     }
 
     fun valueChangedSinceInit() = state.value != initialValue
@@ -131,9 +135,7 @@ class DataSaverMutableState<T>(
 
     override operator fun component1() = state.value
 
-    override operator fun component2(): (T) -> Unit = {
-        doSetValue(it)
-    }
+    override operator fun component2(): (T) -> Unit = ::doSetValue
 }
 
 /**
@@ -223,13 +225,12 @@ inline fun <reified T> mutableDataSaverStateOf(
     async: Boolean = true
 ): DataSaverMutableState<T> {
     val data = try {
-        dataSaverInterface.readData(key, initialValue)
+        if (!dataSaverInterface.contains(key)) initialValue
+        else dataSaverInterface.readData(key, initialValue)
     } catch (e: Exception) {
-        val restore = typeRestoreConverters[T::class.java]
+        val restore = findRestorer<T>()
         restore ?: throw e
-        val jsonData = dataSaverInterface.readData(key, "")
-        if (jsonData == "") initialValue
-        else restore(jsonData) as T
+        restore(dataSaverInterface.readData(key, "")) as T
     }
     return DataSaverMutableState(dataSaverInterface, key, data, savePolicy, async)
 }

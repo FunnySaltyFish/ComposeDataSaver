@@ -2,9 +2,10 @@ package com.funny.data_saver.core
 
 import android.util.Log
 import androidx.compose.runtime.*
-import com.funny.data_saver.core.DataSaverConverter.typeRestoreConverters
+import com.funny.data_saver.core.DataSaverConverter.findRestorer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
 
@@ -32,7 +33,7 @@ class DataSaverMutableListState<T>(
     private val async: Boolean = false,
 ) : MutableState<List<T>> {
     private val list = mutableStateOf(initialValue)
-
+    private var job: Job? = null
     override var value: List<T>
         get() = list.value
         set(value) {
@@ -63,7 +64,8 @@ class DataSaverMutableListState<T>(
     fun saveData() {
         val value = value
         if (async) {
-            scope.launch {
+            job?.cancel()
+            job = scope.launch {
                 dataSaverInterface.saveData(key, DataSaverConverter.convertListToString(value).also {
                     log("saveConvertedData(async: $async): $key -> $value(as $it)")
                 })
@@ -84,6 +86,7 @@ class DataSaverMutableListState<T>(
     fun remove(replacement: List<T> = initialValue) {
         dataSaverInterface.remove(key)
         list.value = replacement
+        log("remove: key: $key, replace the value to $replacement")
     }
 
     private fun doSetValue(value: List<T>) {
@@ -195,13 +198,12 @@ inline fun <reified T> mutableDataSaverListStateOf(
     async: Boolean = false,
 ): DataSaverMutableListState<T> {
     val data = try {
-        dataSaverInterface.readData(key, initialValue)
+        if (!dataSaverInterface.contains(key)) initialValue
+        else dataSaverInterface.readData(key, initialValue)
     } catch (e: Exception) {
-        val restore = typeRestoreConverters[T::class.java]
+        val restore = findRestorer<T>()
         restore ?: throw e
-        val strData = dataSaverInterface.readData(key, "")
-        if (strData == "") initialValue
-        else DataSaverConverter.convertStringToList<T>(strData)
+        DataSaverConverter.convertStringToList<T>(dataSaverInterface.readData(key, "[]"), restore)
     }
     return DataSaverMutableListState(dataSaverInterface, key, data, savePolicy, async)
 }
