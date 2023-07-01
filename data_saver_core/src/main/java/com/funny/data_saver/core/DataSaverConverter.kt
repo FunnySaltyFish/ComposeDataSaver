@@ -7,6 +7,10 @@ object DataSaverConverter {
     val typeSaveConverters: MutableMap<Class<*>, (Any?) -> String> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableMapOf() }
     val typeRestoreConverters: MutableMap<Class<*>, (String) -> Any?> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableMapOf() }
 
+    private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        DataSaverLogger("DataSaverConverter")
+    }
+
     /**
      * Use this function to convert your entity class into basic data type to store.
      * Check the example of this repository to see how to use it.

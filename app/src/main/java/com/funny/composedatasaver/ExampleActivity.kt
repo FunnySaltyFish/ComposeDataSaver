@@ -14,6 +14,7 @@ import com.funny.composedatasaver.ui.ExampleComposable
 import com.funny.composedatasaver.ui.ThemeType
 import com.funny.composedatasaver.ui.theme.FunnyTheme
 import com.funny.data_saver.core.DataSaverConverter.registerTypeConverters
+import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver_mmkv.DataSaverMMKV
 import com.funny.data_saver_mmkv.DefaultDataSaverMMKV
@@ -55,7 +56,7 @@ class ExampleActivity : ComponentActivity() {
 
         setContent {
             FunnyTheme {
-                CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
+                CompositionLocalProvider(LocalDataSaver provides DataSaverInMemory()){
                     // or LocalDataSaver provides dataSaverMMKV
                     // or LocalDataSaver provides dataSaverDataStorePreferences
                     // or your Class instance

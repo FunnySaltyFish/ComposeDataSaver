@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.funny.composedatasaver.Constant
@@ -48,6 +49,7 @@ val EmptyBean = ExampleBean(233, "FunnySaltyFish")
 
 @ExperimentalSerializationApi
 @Composable
+// @Preview
 fun ExampleComposable() {
     // get dataSaver                          | 获取 DataSaverInterface
     // you can use this to save data manually | 您可以使用此变量做手动保存
@@ -124,7 +126,10 @@ fun ExampleComposable() {
         }
 
         Text(text = "This is an example of saving custom Sealed Class") // 保存自定义类型的示例
-        Column(Modifier.background(MaterialTheme.colors.surface, RoundedCornerShape(16.dp)).padding(8.dp)) {
+        Column(
+            Modifier
+                .background(MaterialTheme.colors.surface, RoundedCornerShape(16.dp))
+                .padding(8.dp)) {
             Text(
                 modifier = Modifier.semantics { heading() },
                 text = "主题/Theme",
@@ -216,13 +221,23 @@ private fun SaveWhenDisposedExample() {
     }
 }
 
+@Preview
 @Composable
-fun Heading(text: String) {
+fun PreviewExample() {
+    var checked by rememberDataSaverState(key = "preview_string", initialValue = false)
+    Switch(checked = checked, onCheckedChange = {
+        checked = it
+    })
+}
+
+
+@Composable
+private fun Heading(text: String) {
     Text(text, fontWeight = FontWeight.W600, fontSize = 18.sp)
 }
 
 @Composable
-fun RadioTile(
+private fun RadioTile(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,

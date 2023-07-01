@@ -2,8 +2,11 @@ package com.funny.data_saver.core
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalInspectionMode
 
 /**
  * The interface is used to save/read data. We provide the basic implementation using Preference, DataStore and MMKV.
@@ -59,9 +62,59 @@ class DataSaverPreferences(private val preference: SharedPreferences) : DataSave
 }
 
 /**
+ * Using [HashMap] to save data in memory, can be used for testing
+ * @property map MutableMap<String, Any?>
+ */
+class DataSaverInMemory : DataSaverInterface {
+    private val map by lazy {
+        mutableMapOf<String, Any?>()
+    }
+
+    override fun <T> saveData(key: String, data: T) {
+        waringUsage()
+        if (data == null){
+            remove(key)
+            return
+        }
+        map[key] = data
+    }
+
+    override fun <T> readData(key: String, default: T): T {
+        waringUsage()
+        val res = map[key] ?: default
+        return res as T
+    }
+
+    override fun remove(key: String) {
+        waringUsage()
+        map.remove(key)
+    }
+
+    override fun contains(key: String) = map.containsKey(key)
+
+    private fun waringUsage() {
+        DataSaverLogger.w("DataSaverInMemory is used, it's not recommended to use it in production because it saves data in memory, which will be lost when the app is killed. If you are in Preview mode, please ignore this warning.")
+    }
+}
+
+/**
  * You can call `LocalDataSaver.current` inside a [androidx.compose.runtime.Composable] to
  * get the instance you've provided. You can call `readData` and `saveData` then.
  */
 var LocalDataSaver : ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
-    error("No instance of DataSaveInterface is provided, please call `CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){}` first. See the README of the repo ComposeDataSaver to learn more")
+    DefaultDataSaverInMemory
 }
+
+internal val DefaultDataSaverInMemory by lazy {
+    DataSaverInMemory()
+}
+
+/**
+ * Get the [DataSaverInterface] instance, if [LocalInspectionMode.current] is true, return [DataSaverInMemory] instead
+ * which supports preview in Android Studio
+ * @return DataSaverInterface
+ */
+@Composable
+@ReadOnlyComposable
+fun localDataSaverInterface() =
+    if (LocalInspectionMode.current) DefaultDataSaverInMemory else LocalDataSaver.current

@@ -1,6 +1,5 @@
 package com.funny.data_saver.core
 
-import android.util.Log
 import androidx.compose.runtime.*
 import com.funny.data_saver.core.DataSaverConverter.findRestorer
 import kotlinx.coroutines.CoroutineScope
@@ -96,15 +95,18 @@ class DataSaverMutableListState<T>(
             saveData()
     }
 
-    private fun log(msg: String) {
-        if (DataSaverConfig.DEBUG) Log.d(TAG, msg)
-    }
-
     companion object {
-
         const val TAG = "DataSaverState"
         private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
             CoroutineScope(Dispatchers.IO)
+        }
+
+        private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            DataSaverLogger(DataSaverMutableState.TAG)
+        }
+
+        private fun log(msg: String) {
+            logger.d(msg)
         }
     }
 
@@ -154,14 +156,11 @@ inline fun <reified T : Any> rememberDataSaverListState(
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     async: Boolean = true
 ): DataSaverMutableListState<T> {
-    val saverInterface = LocalDataSaver.current
+    val saverInterface = localDataSaverInterface()
     var state: DataSaverMutableListState<T>? = null
     DisposableEffect(key, savePolicy) {
         onDispose {
-            if (DataSaverConfig.DEBUG) Log.d(
-                "rememberDataSaver",
-                "rememberDataSaverState: onDisposed!"
-            )
+            DataSaverLogger.log("rememberDataSaverListState: state of key=\"$key\" onDisposed!")
             if (savePolicy == SavePolicy.DISPOSED && state != null && state!!.valueChangedSinceInit()) {
                 state!!.saveData()
             }
