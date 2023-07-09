@@ -38,16 +38,16 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion compose_compiler_version
     }
 }
 
 dependencies {
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.material:material:1.3.0-rc01"
-    implementation "androidx.compose.ui:ui-tooling:$compose_version"
-    implementation 'androidx.activity:activity-compose:1.4.0'
-
+    implementation platform("androidx.compose:compose-bom:$compose_bom_version")
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.material:material"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation 'androidx.activity:activity-compose:1.7.2'
     implementation "com.github.FunnySaltyFish:CMaterialColors:1.0.21"
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1"
@@ -55,10 +55,9 @@ dependencies {
     implementation project(path: ':data_saver_core')
 //    implementation 'com.github.FunnySaltyFish.ComposeDataSaver:data-saver:v1.1.3'
 
-
     // if you want to use mmkv
     implementation project(path: ":data_saver_mmkv")
-    implementation 'com.tencent:mmkv:1.2.12'
+    implementation 'com.tencent:mmkv:1.2.14'
 
     // if you want to use DataStore
     implementation project(path: ':data_saver_data_store_preferences')

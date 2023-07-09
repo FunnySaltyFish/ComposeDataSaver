@@ -35,7 +35,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion compose_compiler_version
     }
 
     publishing {
@@ -69,10 +69,12 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation platform("androidx.compose:compose-bom:$compose_bom_version")
+    implementation "androidx.compose.runtime:runtime"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    implementation 'com.tencent:mmkv:1.2.14'
+    compileOnly 'com.tencent:mmkv:1.2.14'
+    compileOnly 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation project(path: ":data_saver_core")
 
     testImplementation 'junit:junit:4.13.2'
