@@ -56,6 +56,8 @@ import com.funny.data_saver.core.SavePolicy
 import com.funny.data_saver.core.getLocalDataSaverInterface
 import com.funny.data_saver.core.rememberDataSaverListState
 import com.funny.data_saver.core.rememberDataSaverState
+import com.funny.data_saver_mmkv.DataSaverMMKV
+import com.tencent.mmkv.MMKV
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -253,9 +255,8 @@ private fun ColumnScope.NullableExample() {
 private fun ColumnScope.SenseExternalDataChangeExample() {
     val context = LocalContext.current
     val dataSaver = if (LocalInspectionMode.current) DataSaverInMemory(true) else
-        DataSaverInMemory(true)
         // DataSaverDataStorePreferences(context.dataStore, true)
-        // DataSaverMMKV(MMKV.defaultMMKV(), true)
+        DataSaverMMKV(MMKV.defaultMMKV(), true)
         // DataSaverPreferences(context, true)
     Heading(text = "Sense External Data Change Example")
     CompositionLocalProvider(LocalDataSaver provides dataSaver) {

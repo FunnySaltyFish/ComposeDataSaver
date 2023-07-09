@@ -16,7 +16,6 @@ booleanExample = true
 ```
 
 
-
 - :tada: 简洁：近似原生Compose的写法
 - :tada: 低耦合：抽象接口，不限制底层保存算法实现
 - :tada: 轻巧：默认不引入除Compose外任何第三方库（主体jar包约**10kb**，可选的实现仅**1kb**）
@@ -28,7 +27,7 @@ booleanExample = true
 
 <img src="screenshot.png" alt="Example" style="zoom: 25%;" />
 
-您可以点击 [这里下载demo体验](demo.apk)
+您可以点击 [这里下载demo体验](demo.apk)（Debug 包，相较于 release 包较卡顿）
 
 
 
@@ -54,9 +53,12 @@ dependencies {
 }
 ```
 
+## 示例代码
+以下介绍的示例代码均可在 [这里](app/src/main/java/com/funny/composedatasaver/ui/ExampleComposables.kt) 查看具体实现
+
 ## 基本使用
 
-项目使用`DataSaverInterface`接口的实现类来保存数据，因此您需要先提供一个此类对象。
+项目使用`DataSaverInterface`的实现类来保存数据，因此您需要先提供一个此类对象。
 
 项目默认包含了使用`Preference`保存数据的实现类`DataSaverPreferences`，可如下初始化：
 
@@ -200,11 +202,15 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
 只需要实现`DataSaverInterface`类，并重写`saveData`和`readData`方法分别用于保存数据和读取数据。对于一些支持协程的框架（如DataStore），您也可以重写`saveDataAsync`以实现异步的保存
 
 ```kotlin
-interface DataSaverInterface{
-    fun <T> saveData(key:String, data : T)
-    fun <T> readData(key: String, default : T) : T
-    suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
-    fun remove(key: String)
+abstract class DataSaverInterface(val senseExternalDataChange: Boolean = false) {
+    abstract fun <T> saveData(key: String, data: T)
+    abstract fun <T> readData(key: String, default: T): T
+    open suspend fun <T> saveDataAsync(key: String, data: T) = saveData(key, data)
+    abstract fun remove(key: String)
+    abstract fun contains(key: String): Boolean
+
+    var externalDataChangedFlow: MutableSharedFlow<Pair<String, Any?>>? =
+        if (senseExternalDataChange) MutableSharedFlow(replay = 1) else null
 }
 ```
 
@@ -254,7 +260,33 @@ registerTypeConverters<ExampleBean>(
 
 完整例子见 [示例项目](/app/src/main/java/com/funny/composedatasaver/ExampleActivity.kt)
 
+## 感知外部数据变化
+自 v1.1.6 起，框架加入了**有限的对外部数据变化感知的支持**，具体来说，就是当您在外部修改了某个key对应的值时，框架会自动感知到并更新对应的`MutableDataSaverState`，从而触发Composable的更新。
 
+目前，仅有 `rememberDataSaverState` 和 `rememberDataSaverListState` 支持此功能，您需要设置 `senseExternalDataChange` 参数为 `true`。同时，对应的 `DataSaverInterface` 也需要设置 `senseExternalDataChange` 为 true
+
+```kotlin
+val dataSaverXXX = DataSaverXXX(senseExternalDataChange = true)
+CompositionLocalProvider(LocalDataSaver provides dataSaverXXX){
+    val stringExample by rememberDataSaverState(
+        key = key,
+        initialValue = "Hello World(1)",
+        senseExternalDataChange = true
+    )
+        ...
+    onClick = {
+        // 外部修改了key对应的值，此时Composable会自动更新
+        dataSaverXXX.saveData(key, "Hello World(2)")
+    }
+}
+```
+
+请注意，当新数据为 null 时，会有以下情况：
+- 当使用 `rememberDataSaverState` 时
+  - 如果 T 为可空类型，比如 ExampleBean? ，那么正确的设置为 null
+  - 如果 T 为非空类型，比如 ExampleBean ，那么 State 的 value 会重新变为 initialValue
+- 当使用 `rememberDataSaverListState` 时
+  - State 的 value 会重新变为 initialValue
 
 ## 高级设置
 
@@ -329,20 +361,29 @@ registerTypeConverters<ExampleBean?>(
 val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> = rememberDataSaverState(key = "nullable_bean", initialValue = null)
 ```
 
-请注意，出于代码的实现上的考虑，设置 `state.value = null` 或 `dataSaverInterface.saveData(key, null)` 实际**将调用对应 `remove` 方法直接移除对应值**
+请注意，出于代码的实现上的考虑，设置 `state.value = null` 或 `dataSaverInterface.saveData(key, null)` 实际**将调用对应 `remove` 方法直接移除对应值**。这意味着，框架的默认实现没有办法正确的保存 “null” 值。当 `state.value = null` 设置完且下次重新打开应用后，**框架会认为此 `key` 对应的本地值不存在，会将 value 设为 initialValue**。  
+如果您需要真的存储 “null” 且 `initialValue != null`，请手动处理这部分逻辑。比如，设置一个特殊的值来代表 “null” ，比如 `ExampleBean(-1, "null")`；如果您有更好的方案，欢迎 PR！
 
 
+### @Preview 支持
+项目自 v1.1.6 起支持了 @Preview。具体来说，由于 @Preview 模式下无法正常使用 `CompositionLocalProvider`，因此我额外实现了 `DataSaverInMemory`，它使用 `HashMap` 来存储数据，从而不依赖于本地存储以及 `CompositionLocalProvider`。
 
+```kotlin
+@Composable
+@ReadOnlyComposable
+fun getLocalDataSaverInterface() =
+    if (LocalInspectionMode.current) DefaultDataSaverInMemory else LocalDataSaver.current
+```
 
+@Preview 模式下，您可能需要重新调用一遍 `registerTypeConverter` 以重新注册类型转换器。
 
 ## 使用的项目
 
 目前，此库已在下列项目中使用：
 
 - [FunnySaltyFish/FunnyTranslation: 基于Jetpack Compose开发的翻译软件，支持多引擎、插件化~ | Jetpack Compose+MVVM+协程+Room](https://github.com/FunnySaltyFish/FunnyTranslation)
-- [cy745/LMusic: 一个简洁且独特的音乐播放器，在其中学习使用了MVVM架构 ](https://github.com/cy745/LMusic)
 
 如果您正在使用此项目，也欢迎您告知我以补充。
 
-有任何建议或bug报告，欢迎提交issue。PR就更好啦。
+有任何建议或bug报告，欢迎提交issue。PR 就更好啦。
 
