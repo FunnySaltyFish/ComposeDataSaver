@@ -1,13 +1,13 @@
 package com.funny.data_saver.core
 
 import androidx.compose.runtime.*
-import com.funny.data_saver.core.DataSaverConverter.findRestorer
 import com.funny.data_saver.core.DataSaverConverter.findSaver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
+import kotlin.reflect.typeOf
 
 /**
  * A state which holds the value.  It implements the [MutableState] interface, so you can use
@@ -34,6 +34,9 @@ class DataSaverMutableState<T>(
 ) : MutableState<T> {
     private val state = mutableStateOf(initialValue)
     private var job: Job? = null
+    private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        CoroutineScope(Dispatchers.IO)
+    }
 
     override var value: T
         get() = state.value
@@ -69,7 +72,7 @@ class DataSaverMutableState<T>(
      * to do that.
      */
     fun saveData() {
-        if (value == null){
+        if (value == null) {
             dataSaverInterface.remove(key)
             return
         }
@@ -112,6 +115,14 @@ class DataSaverMutableState<T>(
 
     fun valueChangedSinceInit() = state.value != initialValue
 
+    /**
+     * set the value without saving data to disk
+     * @param value T
+     */
+    fun setValueWithoutSave(value: T) {
+        state.value = value
+    }
+
 
     private fun doSetValue(value: T) {
         val oldValue = this.state.value
@@ -121,13 +132,8 @@ class DataSaverMutableState<T>(
     }
 
 
-
     companion object {
         const val TAG = "DataSaverState"
-
-        private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
-            CoroutineScope(Dispatchers.IO)
-        }
 
         private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
             DataSaverLogger(TAG)
@@ -186,10 +192,46 @@ inline fun <reified T> rememberDataSaverState(
     key: String,
     initialValue: T,
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
-    async: Boolean = true
+    async: Boolean = true,
+    senseExternalDataChange: Boolean = false
 ): DataSaverMutableState<T> {
-    val saverInterface = localDataSaverInterface()
+    val saverInterface = getLocalDataSaverInterface()
     var state: DataSaverMutableState<T>? = null
+
+    LaunchedEffect(key1 = senseExternalDataChange) {
+        if (!senseExternalDataChange || state == null) return@LaunchedEffect
+        if (!saverInterface.senseExternalDataChange) {
+            DataSaverLogger.e("to enable senseExternalDataChange, you should set `senseExternalDataChange` to true in DataSaverInterface")
+            return@LaunchedEffect
+        }
+        saverInterface.externalDataChangedFlow?.collect { pair ->
+            val (k, v) = pair
+            DataSaverLogger.log("externalDataChangedFlow: $key -> $v")
+            if (k == key && v != state?.value) {
+                val d = if (v != null) {
+                    try {
+                        v as T
+                    } catch (e: Exception) {
+                        if (v is String) {
+                            val restore = DataSaverConverter.findRestorer<T>()
+                            restore ?: throw e
+                            restore(v) as T
+                        } else {
+                            throw e
+                        }
+                    }
+                } else {
+                    // if the value is null
+                    // and the type is nullable
+                    if (typeOf<T>().isMarkedNullable)  v as T
+                    else initialValue
+                }
+                // to avoid duplicate save
+                state?.setValueWithoutSave(d)
+            }
+        }
+    }
+
     DisposableEffect(key, savePolicy) {
         onDispose {
             DataSaverLogger.log("rememberDataSaverState: state of key=\"$key\" onDisposed!")
@@ -198,6 +240,7 @@ inline fun <reified T> rememberDataSaverState(
             }
         }
     }
+
     return remember(saverInterface, key, async) {
         mutableDataSaverStateOf(saverInterface, key, initialValue, savePolicy, async).also {
             state = it
@@ -230,7 +273,7 @@ inline fun <reified T> mutableDataSaverStateOf(
         if (!dataSaverInterface.contains(key)) initialValue
         else dataSaverInterface.readData(key, initialValue)
     } catch (e: Exception) {
-        val restore = findRestorer<T>()
+        val restore = DataSaverConverter.findRestorer<T>()
         restore ?: throw e
         restore(dataSaverInterface.readData(key, "")) as T
     }

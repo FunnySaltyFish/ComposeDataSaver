@@ -156,7 +156,7 @@ inline fun <reified T : Any> rememberDataSaverListState(
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     async: Boolean = true
 ): DataSaverMutableListState<T> {
-    val saverInterface = localDataSaverInterface()
+    val saverInterface = getLocalDataSaverInterface()
     var state: DataSaverMutableListState<T>? = null
     DisposableEffect(key, savePolicy) {
         onDispose {

@@ -4,10 +4,19 @@ import android.os.Parcelable
 import com.funny.data_saver.core.DataSaverInterface
 import com.tencent.mmkv.MMKV
 
-class DataSaverMMKV(private val kv: MMKV) : DataSaverInterface {
+class DataSaverMMKV(
+    private val kv: MMKV,
+    senseExternalDataChange: Boolean = false
+) : DataSaverInterface(senseExternalDataChange) {
+    // MMKV doesn't support listener, so we manually notify the listener
+    private fun notifyExternalDataChanged(key: String, value: Any?) {
+        if (senseExternalDataChange) externalDataChangedFlow?.tryEmit(key to value)
+    }
+
     override fun <T> saveData(key: String, data: T) {
         if (data == null){
             remove(key)
+            notifyExternalDataChanged(key, null)
             return
         }
         with(kv) {
@@ -22,6 +31,7 @@ class DataSaverMMKV(private val kv: MMKV) : DataSaverInterface {
                 is ByteArray -> encode(key, data)
                 else -> throw IllegalArgumentException("Unable to save $data, this type(${data!!::class.java}) cannot be saved to MMKV, call [registerTypeConverters] to support it.")
             }
+            notifyExternalDataChanged(key, data)
         }
     }
 
@@ -42,6 +52,7 @@ class DataSaverMMKV(private val kv: MMKV) : DataSaverInterface {
 
     override fun remove(key: String) {
         kv.removeValueForKey(key)
+        notifyExternalDataChanged(key, null)
     }
 
     override fun contains(key: String) = kv.containsKey(key)

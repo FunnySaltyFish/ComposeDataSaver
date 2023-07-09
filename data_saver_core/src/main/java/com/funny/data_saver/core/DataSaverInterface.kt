@@ -7,25 +7,54 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalInspectionMode
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
  * The interface is used to save/read data. We provide the basic implementation using Preference, DataStore and MMKV.
  *
  * If you want to write your own, you need to implement `saveData` and `readData`. Besides, a suspend function `saveDataAsync` is optional(which is equal to `saveData` by default)
  */
-interface DataSaverInterface{
-    fun <T> saveData(key:String, data : T)
-    fun <T> readData(key: String, default : T) : T
-    suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
-    fun remove(key: String)
-    fun contains(key: String): Boolean
+abstract class DataSaverInterface(val senseExternalDataChange: Boolean = false) {
+    abstract fun <T> saveData(key: String, data: T)
+    abstract fun <T> readData(key: String, default: T): T
+    open suspend fun <T> saveDataAsync(key: String, data: T) = saveData(key, data)
+    abstract fun remove(key: String)
+    abstract fun contains(key: String): Boolean
+
+    var externalDataChangedFlow: MutableSharedFlow<Pair<String, Any?>>? =
+        if (senseExternalDataChange) MutableSharedFlow(replay = 1) else null
 }
 
 /**
  * Default implementation using [SharedPreferences] to save data
  */
-class DataSaverPreferences(private val preference: SharedPreferences) : DataSaverInterface {
-    constructor(context: Context): this(context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE))
+class DataSaverPreferences(
+    private val preference: SharedPreferences,
+    senseExternalDataChange: Boolean = false
+) : DataSaverInterface(senseExternalDataChange) {
+    constructor(
+        context: Context,
+        senseExternalDataChange: Boolean
+    ) : this(
+        context.getSharedPreferences(context.packageName, Context.MODE_PRIVATE),
+        senseExternalDataChange
+    )
+
+    private val logger by lazy { DataSaverLogger("DataSaverPreferences") }
+    private val onSharedPreferenceChangeListener by lazy {
+        SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            logger.d("data changed: $key -> ${sharedPreferences.all[key]}, subscriptionCount: ${externalDataChangedFlow?.subscriptionCount?.value}")
+            externalDataChangedFlow?.tryEmit(key to sharedPreferences.all[key])
+        }
+    }
+
+    init {
+        if (senseExternalDataChange) {
+            this.preference.registerOnSharedPreferenceChangeListener(
+                onSharedPreferenceChangeListener
+            )
+        }
+    }
 
     override fun <T> saveData(key: String, data: T) = with(preference.edit()) {
         when (data) {
@@ -33,6 +62,7 @@ class DataSaverPreferences(private val preference: SharedPreferences) : DataSave
                 this@DataSaverPreferences.remove(key)
                 return@with
             }
+
             is Long -> putLong(key, data)
             is Int -> putInt(key, data)
             is String -> putString(key, data)
@@ -59,20 +89,21 @@ class DataSaverPreferences(private val preference: SharedPreferences) : DataSave
     }
 
     override fun contains(key: String) = preference.contains(key)
+
 }
 
 /**
  * Using [HashMap] to save data in memory, can be used for testing
  * @property map MutableMap<String, Any?>
  */
-class DataSaverInMemory : DataSaverInterface {
+class DataSaverInMemory : DataSaverInterface() {
     private val map by lazy {
         mutableMapOf<String, Any?>()
     }
 
     override fun <T> saveData(key: String, data: T) {
         waringUsage()
-        if (data == null){
+        if (data == null) {
             remove(key)
             return
         }
@@ -101,7 +132,7 @@ class DataSaverInMemory : DataSaverInterface {
  * You can call `LocalDataSaver.current` inside a [androidx.compose.runtime.Composable] to
  * get the instance you've provided. You can call `readData` and `saveData` then.
  */
-var LocalDataSaver : ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
+var LocalDataSaver: ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
     DefaultDataSaverInMemory
 }
 
@@ -116,5 +147,5 @@ internal val DefaultDataSaverInMemory by lazy {
  */
 @Composable
 @ReadOnlyComposable
-fun localDataSaverInterface() =
+fun getLocalDataSaverInterface() =
     if (LocalInspectionMode.current) DefaultDataSaverInMemory else LocalDataSaver.current

@@ -9,6 +9,9 @@ class DataSaverLogger(private val tag: String) {
     fun w(msg: String) {
         if (DataSaverConfig.DEBUG) Log.w(tag, msg)
     }
+    fun e(msg: String) {
+        if (DataSaverConfig.DEBUG) Log.e(tag, msg)
+    }
 
     companion object {
         private const val TAG = "ComposeDataSaver"
@@ -19,5 +22,6 @@ class DataSaverLogger(private val tag: String) {
         fun log(msg: String) = ::d
         fun d(msg: String) { logger.d(msg) }
         fun w(msg: String) { logger.w(msg) }
+        fun e(msg: String) { logger.e(msg) }
     }
 }

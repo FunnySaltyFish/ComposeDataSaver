@@ -3,17 +3,48 @@
 package com.funny.data_saver_data_store
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.PreferenceDataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.funny.data_saver.core.DataSaverInterface
+import com.funny.data_saver.core.DataSaverLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
  * The implementation using [PreferenceDataStore] to save data. And because DataStore supports coroutine,
  * so does this.
  */
-class DataSaverDataStorePreferences(private val dataStore: DataStore<Preferences>) : DataSaverInterface {
+class DataSaverDataStorePreferences(
+    private val dataStore: DataStore<Preferences>,
+    senseExternalDataChange: Boolean = false
+) : DataSaverInterface(senseExternalDataChange) {
+    private val scope by lazy { CoroutineScope(Dispatchers.IO) }
+    private val logger by lazy { DataSaverLogger("DataStorePreferences") }
+    init {
+        if (senseExternalDataChange) {
+            scope.launch {
+                dataStore.data.distinctUntilChanged().collect {
+                    it.asMap().forEach { (key, value) ->
+                        logger.d("$key -> $value is emitted")
+                        externalDataChangedFlow?.tryEmit(key.name to value)
+                    }
+                }
+            }
+        }
+    }
+
     override fun <T> readData(key: String, default: T): T {
         return runBlocking { get(dataStore, key, default) }
     }

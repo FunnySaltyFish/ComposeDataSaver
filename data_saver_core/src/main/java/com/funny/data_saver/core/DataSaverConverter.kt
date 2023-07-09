@@ -1,7 +1,6 @@
 package com.funny.data_saver.core
 
 import android.util.Log
-import java.lang.StringBuilder
 
 object DataSaverConverter {
     val typeSaveConverters: MutableMap<Class<*>, (Any?) -> String> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableMapOf() }
@@ -91,7 +90,17 @@ object DataSaverConverter {
         return saver
     }
 
-    private fun unsupportedType(data: Any?, action: String = "save"): Nothing =
+    inline fun <reified T> restoreDataFromLocal(
+        dataSaverInterface: DataSaverInterface,
+        key: String,
+        data: T
+    ): T {
+        val restore = findRestorer<T>()
+        restore ?: unsupportedType(data, "restore")
+        return restore(dataSaverInterface.readData(key, "")) as T
+    }
+
+    fun unsupportedType(data: Any?, action: String = "save"): Nothing =
         error("Unable to $action data: type of $data (class: ${if (data == null)"null" else data::class.java} is not supported, please call [registerTypeConverters] at first!")
 
 }
