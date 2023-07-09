@@ -96,10 +96,30 @@ class DataSaverPreferences(
  * Using [HashMap] to save data in memory, can be used for testing
  * @property map MutableMap<String, Any?>
  */
-class DataSaverInMemory : DataSaverInterface() {
-    private val map by lazy {
-        mutableMapOf<String, Any?>()
+class DataSaverInMemory(senseExternalDataChange: Boolean = false) : DataSaverInterface(senseExternalDataChange) {
+    inner class ObservableMap() {
+        private val map by lazy {
+            mutableMapOf<String, Any?>()
+        }
+
+        operator fun set(key: String, value: Any?) {
+            map[key] = value
+            externalDataChangedFlow?.tryEmit(key to value)
+        }
+
+        operator fun get(key: String): Any? {
+            return map[key]
+        }
+
+        fun remove(key: String) {
+            map.remove(key)
+            externalDataChangedFlow?.tryEmit(key to null)
+        }
+
+        fun containsKey(key: String) = map.containsKey(key)
     }
+
+    private val map = ObservableMap()
 
     override fun <T> saveData(key: String, data: T) {
         waringUsage()

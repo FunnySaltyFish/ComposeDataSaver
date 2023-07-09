@@ -3,7 +3,6 @@
 package com.funny.data_saver_data_store
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey

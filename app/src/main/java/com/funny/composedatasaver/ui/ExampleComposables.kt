@@ -27,6 +27,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -45,16 +47,19 @@ import com.funny.composedatasaver.Constant.KEY_BEAN_EXAMPLE
 import com.funny.composedatasaver.Constant.KEY_BOOLEAN_EXAMPLE
 import com.funny.composedatasaver.Constant.KEY_STRING_EXAMPLE
 import com.funny.composedatasaver.ExampleParcelable
+import com.funny.composedatasaver.registerAllTypeConverters
+import com.funny.data_saver.core.DataSaverConverter
+import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverMutableState
 import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver.core.SavePolicy
 import com.funny.data_saver.core.getLocalDataSaverInterface
 import com.funny.data_saver.core.rememberDataSaverListState
 import com.funny.data_saver.core.rememberDataSaverState
-import com.funny.data_saver_mmkv.DataSaverMMKV
-import com.tencent.mmkv.MMKV
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 /**
@@ -77,11 +82,18 @@ val EmptyBean = ExampleBean(233, "FunnySaltyFish")
 
 @ExperimentalSerializationApi
 @Composable
-// @Preview
+ @Preview
 fun ExampleComposable() {
     // get dataSaver                          | 获取 DataSaverInterface
     // you can use this to save data manually | 您可以使用此变量做手动保存
     val dataSaverInterface = getLocalDataSaverInterface()
+
+    // support @Preview by additionally register the type converter
+    // normally [registerAllTypeConverters()] should be called in Application.onCreate() or Activity.onCreate()
+    val isInspectMode = LocalInspectionMode.current
+    SideEffect {
+        if (isInspectMode) registerAllTypeConverters()
+    }
 
     // you can set [savePolicy] to other types (see [SavePolicy] ) to prevent saving too frequently
     // if you set it to SavePolicy.NEVER , you need to saveData by yourself
@@ -101,14 +113,6 @@ fun ExampleComposable() {
 
     var beanExample by rememberDataSaverState(KEY_BEAN_EXAMPLE, default = EmptyBean)
 
-    var listExample by rememberDataSaverListState(
-        key = "key_list_example", default = listOf(
-            EmptyBean.copy(label = "Name 1"),
-            EmptyBean.copy(label = "Name 2"),
-            EmptyBean.copy(label = "Name 3")
-        )
-    )
-
     // Among our basic implementations, only MMKV supports `Parcelable` by default
     var parcelableExample by rememberDataSaverState(
         key = "parcelable_example",
@@ -121,18 +125,18 @@ fun ExampleComposable() {
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Heading(text = "Auto Save Examples:")
+        Heading(text = "Simple Examples:")
         Text(text = "This is an example of saving String") // 保存字符串的示例
         OutlinedTextField(value = stringExample, onValueChange = {
             stringExample = it
         })
 
-        Text(text = "This is an example of saving Boolean") // 保存布尔值的示例
+        Text(text = "Saving Boolean") // 保存布尔值的示例
         Switch(checked = booleanExample, onCheckedChange = {
             booleanExample = it
         })
 
-        Text(text = "This is an example of saving Parcelable") // 保存布尔值的示例
+        Heading(text = "Saving Parcelable") // 保存布尔值的示例
         Text(parcelableExample.toString())
         Button(onClick = {
             parcelableExample = parcelableExample.copy(age = parcelableExample.age + 1)
@@ -140,7 +144,7 @@ fun ExampleComposable() {
             Text(text = "Add age by 1")
         }
 
-        Text(text = "This is an example of saving custom Data Bean") // 保存自定义类型的示例
+        Heading(text = "Saving Custom Data Bean") // 保存自定义类型的示例
         Text(text = beanExample.toString())
         Button(onClick = {
             beanExample = beanExample.copy(id = beanExample.id + 1)
@@ -148,36 +152,47 @@ fun ExampleComposable() {
             Text(text = "Add bean's id") // id自加
         }
 
+        ListExample()
+
         CustomSealedClassExample()
 
         NullableExample()
 
         SenseExternalDataChangeExample()
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Heading(text = "Save-When-Disposed Examples:")
         SaveWhenDisposedExample()
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Heading(text = "List Example")
-        LazyColumn(Modifier.heightIn(0.dp, 400.dp)) {
-            items(listExample) { item ->
-                Text(modifier = Modifier.padding(8.dp), text = item.toString(), fontSize = 16.sp)
-            }
-            item {
-                Row {
-                    Button(onClick = {
-                        listExample =
-                            listExample + EmptyBean.copy(label = "Name ${listExample.size + 1}")
-                    }) {
-                        Text(text = "Add To List")
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Button(onClick = {
-                        if (listExample.isNotEmpty()) listExample = listExample.dropLast(1)
-                    }) {
-                        Text(text = "Remove From List")
-                    }
+
+    }
+}
+
+@Composable
+private fun ListExample() {
+    var listExample by rememberDataSaverListState(
+        key = "key_list_example", default = listOf(
+            EmptyBean.copy(label = "Name 1"),
+            EmptyBean.copy(label = "Name 2"),
+            EmptyBean.copy(label = "Name 3")
+        )
+    )
+    Heading(text = "List Example")
+    LazyColumn(Modifier.heightIn(0.dp, 400.dp)) {
+        items(listExample) { item ->
+            Text(modifier = Modifier.padding(8.dp), text = item.toString(), fontSize = 16.sp)
+        }
+        item {
+            Row {
+                Button(onClick = {
+                    listExample =
+                        listExample + EmptyBean.copy(label = "Name ${listExample.size + 1}")
+                }) {
+                    Text(text = "Add To List")
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Button(onClick = {
+                    if (listExample.isNotEmpty()) listExample = listExample.dropLast(1)
+                }) {
+                    Text(text = "Remove From List")
                 }
             }
         }
@@ -205,6 +220,7 @@ private fun SaveWhenDisposedExample() {
         },
         confirmButton = { TextButton(onClick = { showDialog = false }) { Text(text = "Close") } },
     )
+    Heading(text = "Save-When-Disposed Example")
     Button(onClick = { showDialog = true }) {
         Text(text = "Click Me To Open Dialog")
     }
@@ -212,8 +228,9 @@ private fun SaveWhenDisposedExample() {
 
 @Composable
 private fun ColumnScope.NullableExample() {
-    val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> = rememberDataSaverState(key = "nullable_bean", initialValue = null)
-    Text(text = "This is an example of saving custom Data Bean(nullable)") // 保存自定义类型的示例
+    val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> =
+        rememberDataSaverState(key = "nullable_bean", initialValue = null)
+    Heading(text = "Saving Custom Data Bean(nullable)") // 保存自定义类型的示例
     Text(text = nullableCustomBeanState.value.toString())
     Row(Modifier.fillMaxWidth()) {
         Button(onClick = {
@@ -231,13 +248,15 @@ private fun ColumnScope.NullableExample() {
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 @Composable
 private fun ColumnScope.SenseExternalDataChangeExample() {
     val context = LocalContext.current
-    val dataSaver = // DataSaverDataStorePreferences(context.dataStore, true)
-        DataSaverMMKV(MMKV.defaultMMKV(), true)
+    val dataSaver = if (LocalInspectionMode.current) DataSaverInMemory(true) else
+        DataSaverInMemory(true)
+        // DataSaverDataStorePreferences(context.dataStore, true)
+        // DataSaverMMKV(MMKV.defaultMMKV(), true)
         // DataSaverPreferences(context, true)
-    Spacer(modifier = Modifier.height(8.dp))
     Heading(text = "Sense External Data Change Example")
     CompositionLocalProvider(LocalDataSaver provides dataSaver) {
         val key = "sense_external_data_change_example"
@@ -262,30 +281,79 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
         }
 
         Spacer(modifier = Modifier.height(4.dp))
-        var bean: ExampleBean? by rememberDataSaverState(key = "sense_external_data_change_example_bean", initialValue = ExampleBean(0, "initial"), senseExternalDataChange = true)
+        val keyBean = "sense_external_data_change_example_bean"
+        val bean: ExampleBean? by rememberDataSaverState(
+            key = keyBean,
+            initialValue = null,
+            senseExternalDataChange = true
+        )
+        val saveBean = { b: ExampleBean? ->
+            dataSaverInterface.saveData(keyBean, Json.encodeToString(b))
+        }
         Text(text = bean.toString())
         Row {
-            // id += 1
+            // not null
             Button(onClick = {
-                bean = bean?.copy(id = (bean?.id ?: 0)  + 1)
+                saveBean(ExampleBean(0, "not null"))
+            }) {
+                Text(text = "Not Null")
+            }
+            // id += 1
+            Spacer(modifier = Modifier.width(4.dp))
+            Button(onClick = {
+                bean?.copy(id = (bean?.id ?: 0) + 1)?.let(saveBean)
             }) {
                 Text(text = "Add id by 1")
             }
             Spacer(modifier = Modifier.width(4.dp))
             // set as null
             Button(onClick = {
-                bean = null
+                saveBean(null)
             }) {
                 Text(text = "Set As Null")
             }
-            // not null
-            Spacer(modifier = Modifier.width(4.dp))
-            Button(onClick = {
-                bean = ExampleBean(0, "not null")
-            }) {
-                Text(text = "Not Null")
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+        val keyList = "sense_external_data_change_example_list"
+        val list: List<ExampleBean> by rememberDataSaverListState(
+            key = keyList,
+            initialValue = listOf(ExampleBean(0, "initial")),
+            senseExternalDataChange = true
+        )
+        LazyColumn(Modifier.heightIn(0.dp, 200.dp)) {
+            items(list) { item ->
+                Text(modifier = Modifier.padding(8.dp), text = item.toString(), fontSize = 16.sp)
+            }
+            item {
+                Row {
+                    // add
+                    Button(onClick = {
+                        val l = list + ExampleBean(list.size, "add")
+                        dataSaverInterface.saveData(
+                            keyList,
+                            DataSaverConverter.convertListToString(l)
+                        )
+                    }) {
+                        Text(text = "Add")
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    // remove
+                    Button(onClick = {
+                        if (list.isNotEmpty()) {
+                            val l = list.dropLast(1)
+                            dataSaverInterface.saveData(
+                                keyList,
+                                DataSaverConverter.convertListToString(l)
+                            )
+                        }
+                    }) {
+                        Text(text = "Remove")
+                    }
+                }
             }
         }
+
     }
 }
 
@@ -295,11 +363,12 @@ private fun CustomSealedClassExample() {
         key = "key_theme_type",
         default = ThemeType.DynamicNative
     )
-    Text(text = "This is an example of saving custom Sealed Class") // 保存自定义类型的示例
+    Heading(text = "Saving custom Sealed Class") // 保存自定义类型的示例
     Column(
         Modifier
             .background(MaterialTheme.colors.surface, RoundedCornerShape(16.dp))
-            .padding(8.dp)) {
+            .padding(8.dp)
+    ) {
         Text(
             modifier = Modifier.semantics { heading() },
             text = "主题/Theme",
@@ -328,6 +397,7 @@ fun PreviewExample() {
 
 @Composable
 private fun Heading(text: String) {
+    Spacer(modifier = Modifier.height(8.dp))
     Text(text, fontWeight = FontWeight.W600, fontSize = 18.sp)
 }
 
@@ -337,9 +407,13 @@ private fun RadioTile(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
         Text(text = text, fontSize = 24.sp, fontWeight = FontWeight.W700)
         RadioButton(selected = selected, onClick = onClick)
     }

@@ -41,16 +41,7 @@ class ExampleActivity : ComponentActivity() {
         // if you want to use [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) to save data
         // val dataSaverDataStorePreferences = DataSaverDataStorePreferences(applicationContext.dataStore)
 
-        // cause we want to save custom bean, we provide a converter to convert it into String
-        registerTypeConverters<ExampleBean?>(
-            save = { bean -> Json.encodeToString(bean) },
-            restore = { str ->
-                Log.d("ExampleActivity", "restore ExampleBean?: $str")
-                Json.decodeFromString(str)
-            }
-        )
-
-        registerTypeConverters<ThemeType>(save = ThemeType.Saver, restore = ThemeType.Restorer)
+        registerAllTypeConverters()
 
         setContent {
             FunnyTheme {
@@ -63,4 +54,18 @@ class ExampleActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun registerAllTypeConverters() {
+    // cause we want to save custom bean, we provide a converter to convert it into String
+    registerTypeConverters<ExampleBean?>(
+        save = { bean -> Json.encodeToString(bean) },
+        restore = { str ->
+            Log.d("ExampleActivity", "restore ExampleBean? from string: $str")
+            Json.decodeFromString(str)
+        }
+    )
+
+    registerTypeConverters<ThemeType>(save = ThemeType.Saver, restore = ThemeType.Restorer)
 }
