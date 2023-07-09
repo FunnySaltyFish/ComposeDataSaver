@@ -25,7 +25,7 @@ booleanExample = true
 
 
 
-<img src="screenshot.png" alt="Example" style="zoom: 25%;" />
+<img src="screenshot.jpg" alt="Example" style="zoom: 15%;" />
 
 您可以点击 [这里下载demo体验](demo.apk)（Debug 包，相较于 release 包较卡顿）
 
@@ -280,6 +280,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverXXX){
     }
 }
 ```
+其中，MMKV 本身不支持感知数据变化，因此它的数据变化是 `DataSaverMMKV` 手动提交的。如果你在使用 MMKV 时需要感知数据变化，那么需要调用 `DataSaverMMKV::saveData` 来做数据保存才可以。
 
 请注意，当新数据为 null 时，会有以下情况：
 - 当使用 `rememberDataSaverState` 时

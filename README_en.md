@@ -24,7 +24,7 @@ Switch(checked = booleanExample, onCheckedChange = {
 
 
 <center>
-<img src="screenshot.png" alt="Example" style="zoom: 25%;" /></center>
+<img src="screenshot.jpg" alt="Example" style="zoom: 15%;" /></center>
 
 You can download the demo [here](demo.apk).
 
