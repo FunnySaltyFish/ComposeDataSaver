@@ -31,10 +31,14 @@ class DataSaverMutableListState<T>(
     private val savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     private val async: Boolean = false,
 ) : MutableState<List<T>> {
-    private val list = mutableStateOf(initialValue)
+    private val listState = mutableStateOf(initialValue)
     private var job: Job? = null
+    private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        CoroutineScope(Dispatchers.IO)
+    }
+
     override var value: List<T>
-        get() = list.value
+        get() = listState.value
         set(value) {
             doSetValue(value)
         }
@@ -58,16 +62,18 @@ class DataSaverMutableListState<T>(
         doSetValue(value)
     }
 
-    operator fun getValue(thisObj: Any?, property: KProperty<*>): List<T> = list.value
+    operator fun getValue(thisObj: Any?, property: KProperty<*>): List<T> = listState.value
 
     fun saveData() {
         val value = value
         if (async) {
             job?.cancel()
             job = scope.launch {
-                dataSaverInterface.saveData(key, DataSaverConverter.convertListToString(value).also {
-                    log("saveConvertedData(async: $async): $key -> $value(as $it)")
-                })
+                dataSaverInterface.saveData(
+                    key,
+                    DataSaverConverter.convertListToString(value).also {
+                        log("saveConvertedData(async: $async): $key -> $value(as $it)")
+                    })
             }
         } else {
             dataSaverInterface.saveData(key, DataSaverConverter.convertListToString(value).also {
@@ -76,7 +82,7 @@ class DataSaverMutableListState<T>(
         }
     }
 
-    fun valueChangedSinceInit() = list.value.deepEquals(initialValue.toList())
+    fun valueChangedSinceInit() = listState.value.deepEquals(initialValue.toList())
 
     /**
      * remove the key and set the value to `replacement`
@@ -84,22 +90,23 @@ class DataSaverMutableListState<T>(
      */
     fun remove(replacement: List<T> = initialValue) {
         dataSaverInterface.remove(key)
-        list.value = replacement
+        listState.value = replacement
         log("remove: key: $key, replace the value to $replacement")
     }
 
+    fun setValueWithoutSave(v: List<T>) {
+        if (!v.deepEquals(listState.value)) listState.value = v
+    }
+
     private fun doSetValue(value: List<T>) {
-        val oldValue = this.list
-        this.list.value = value
-        if (oldValue != value && savePolicy == SavePolicy.IMMEDIATELY)
+        val oldValue = this.listState.value
+        this.listState.value = value
+        if (!oldValue.deepEquals(value) && savePolicy == SavePolicy.IMMEDIATELY)
             saveData()
     }
 
     companion object {
         const val TAG = "DataSaverState"
-        private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
-            CoroutineScope(Dispatchers.IO)
-        }
 
         private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
             DataSaverLogger(DataSaverMutableState.TAG)
@@ -154,10 +161,44 @@ inline fun <reified T : Any> rememberDataSaverListState(
     key: String,
     initialValue: List<T>,
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
-    async: Boolean = true
+    async: Boolean = true,
+    senseExternalDataChange: Boolean = false
 ): DataSaverMutableListState<T> {
     val saverInterface = getLocalDataSaverInterface()
     var state: DataSaverMutableListState<T>? = null
+
+    LaunchedEffect(key1 = senseExternalDataChange) {
+        if (!senseExternalDataChange || state == null) return@LaunchedEffect
+        if (!saverInterface.senseExternalDataChange) {
+            DataSaverLogger.e("to enable senseExternalDataChange, you should set `senseExternalDataChange` to true in DataSaverInterface")
+            return@LaunchedEffect
+        }
+        saverInterface.externalDataChangedFlow?.collect { pair ->
+            val (k, v) = pair
+            DataSaverLogger.log("externalDataChangedFlow: $key -> $v")
+            if (k == key && v != state?.value) {
+                val d: List<T> = if (v != null) {
+                    try {
+                        v as List<T>
+                    } catch (e: Exception) {
+                        if (v is String) {
+                            val restore = findRestorer<T>()
+                            restore ?: throw e
+                            DataSaverConverter.convertStringToList<T>(v, restore)
+                        } else {
+                            throw e
+                        }
+                    }
+                } else {
+                    // if the value is null
+                    initialValue
+                }
+                // to avoid duplicate save
+                state?.setValueWithoutSave(d)
+            }
+        }
+    }
+
     DisposableEffect(key, savePolicy) {
         onDispose {
             DataSaverLogger.log("rememberDataSaverListState: state of key=\"$key\" onDisposed!")
