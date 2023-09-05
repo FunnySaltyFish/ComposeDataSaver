@@ -24,18 +24,21 @@ import kotlin.reflect.typeOf
  * @param initialValue NOTE: YOU SHOULD READ THE SAVED VALUE AND PASSED IT AS THIS PARAMETER BY YOURSELF(see: [mutableDataSaverStateOf])
  * @param savePolicy how and when to save data, see [SavePolicy]
  * @param async Boolean whether to save data asynchronously
+ * @param coroutineScope CoroutineScope? the scope to launch coroutine, if null, it will create one with [Dispatchers.IO]
+
  */
 class DataSaverMutableState<T>(
     private val dataSaverInterface: DataSaverInterface,
     private val key: String,
     private val initialValue: T,
     private val savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
-    private val async: Boolean = false
+    private val async: Boolean = false,
+    private val coroutineScope: CoroutineScope? = null
 ) : MutableState<T> {
     private val state = mutableStateOf(initialValue)
     private var job: Job? = null
     private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        CoroutineScope(Dispatchers.IO)
+        coroutineScope ?: CoroutineScope(Dispatchers.IO)
     }
 
     override var value: T
@@ -160,6 +163,10 @@ class DataSaverMutableState<T>(
  * @param autoSave Boolean whether to do data persistence each time you do assignment
  * @return DataSaverMutableState<T>
  */
+@Deprecated(
+    "Use another function with parameter `savePolicy` instead",
+    ReplaceWith("rememberDataSaverState(key, initialValue)")
+)
 @Composable
 inline fun <reified T> rememberDataSaverState(
     key: String,
@@ -175,6 +182,7 @@ inline fun <reified T> rememberDataSaverState(
 /**
  * This function READ AND CONVERT the saved data and return a remembered [DataSaverMutableState].
  * Check the example in `README.md` to see how to use it.
+ *
  * ================================
  *
  * 此函数 **读取并转换** 已保存的数据，返回remember后的 [DataSaverMutableState]
@@ -183,6 +191,8 @@ inline fun <reified T> rememberDataSaverState(
  * @param initialValue T default value if it is initialized the first time
  * @param savePolicy how and when to save data, see [SavePolicy]
  * @param async  whether to save data asynchronously
+ * @param senseExternalDataChange whether to sense external data change, default to false. To use this, your [DataSaverInterface.senseExternalDataChange] must be true as well.
+ * @param coroutineScope CoroutineScope? the scope to launch coroutine, if null, it will create one with [Dispatchers.IO]
  * @return DataSaverMutableState<T>
  *
  * @see DataSaverMutableState
@@ -193,7 +203,8 @@ inline fun <reified T> rememberDataSaverState(
     initialValue: T,
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     async: Boolean = true,
-    senseExternalDataChange: Boolean = false
+    senseExternalDataChange: Boolean = false,
+    coroutineScope: CoroutineScope? = null
 ): DataSaverMutableState<T> {
     val saverInterface = getLocalDataSaverInterface()
     var state: DataSaverMutableState<T>? = null
@@ -223,7 +234,7 @@ inline fun <reified T> rememberDataSaverState(
                 } else {
                     // if the value is null
                     // and the type is nullable
-                    if (typeOf<T>().isMarkedNullable)  v as T
+                    if (typeOf<T>().isMarkedNullable) v as T
                     else initialValue
                 }
                 // to avoid duplicate save
@@ -242,7 +253,7 @@ inline fun <reified T> rememberDataSaverState(
     }
 
     return remember(saverInterface, key, async) {
-        mutableDataSaverStateOf(saverInterface, key, initialValue, savePolicy, async).also {
+        mutableDataSaverStateOf(saverInterface, key, initialValue, savePolicy, async, coroutineScope).also {
             state = it
         }
     }
@@ -258,6 +269,7 @@ inline fun <reified T> rememberDataSaverState(
  * @param initialValue T default value if it is initialized the first time
  * @param savePolicy how and when to save data, see [SavePolicy]
  * @param async  whether to save data asynchronously
+ * @param coroutineScope CoroutineScope? the scope to launch coroutine, if null, it will create one with [Dispatchers.IO]
  * @return DataSaverMutableState<T>
  *
  * @see DataSaverMutableState
@@ -267,7 +279,8 @@ inline fun <reified T> mutableDataSaverStateOf(
     key: String,
     initialValue: T,
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
-    async: Boolean = true
+    async: Boolean = true,
+    coroutineScope: CoroutineScope? = null
 ): DataSaverMutableState<T> {
     val data = try {
         if (!dataSaverInterface.contains(key)) initialValue
@@ -277,7 +290,7 @@ inline fun <reified T> mutableDataSaverStateOf(
         restore ?: throw e
         restore(dataSaverInterface.readData(key, "")) as T
     }
-    return DataSaverMutableState(dataSaverInterface, key, data, savePolicy, async)
+    return DataSaverMutableState(dataSaverInterface, key, data, savePolicy, async, coroutineScope)
 }
 
 

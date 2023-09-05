@@ -23,6 +23,7 @@ import kotlin.reflect.KProperty
  * @param initialValue NOTE: YOU SHOULD READ THE SAVED VALUE AND PASSED IT AS THIS PARAMETER BY YOURSELF(see: [rememberDataSaverListState])
  * @param savePolicy how and when to save data, see [SavePolicy]
  * @param async Boolean whether to save data asynchronously
+ * @param coroutineScope CoroutineScope? the scope to launch coroutine, if null, it will create one with [Dispatchers.IO]
  */
 class DataSaverMutableListState<T>(
     private val dataSaverInterface: DataSaverInterface,
@@ -30,11 +31,12 @@ class DataSaverMutableListState<T>(
     private val initialValue: List<T> = emptyList(),
     private val savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     private val async: Boolean = false,
+    private val coroutineScope: CoroutineScope? = null
 ) : MutableState<List<T>> {
     private val listState = mutableStateOf(initialValue)
     private var job: Job? = null
     private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        CoroutineScope(Dispatchers.IO)
+        coroutineScope ?: CoroutineScope(Dispatchers.IO)
     }
 
     override var value: List<T>
@@ -133,6 +135,7 @@ class DataSaverMutableListState<T>(
  * @param autoSave Boolean whether to do data persistence each time you do assignment
  * @return DataSaverMutableState<T>
  */
+@Deprecated("Use another function with parameter `savePolicy` instead", ReplaceWith("rememberDataSaverListState(key, initialValue)"))
 @Composable
 inline fun <reified T : Any> rememberDataSaverListState(
     key: String,
@@ -154,6 +157,8 @@ inline fun <reified T : Any> rememberDataSaverListState(
  * @param initialValue T default value if it is initialized the first time
  * @param savePolicy how and when to save data, see [SavePolicy]
  * @param async  whether to save data asynchronously
+ * @param senseExternalDataChange whether to sense external data change, default to false. To use this, your [DataSaverInterface.senseExternalDataChange] must be true as well.
+ * @param coroutineScope CoroutineScope? the scope to launch coroutine, if null, it will create one with [Dispatchers.IO]
  * @return DataSaverMutableListState<T>
  */
 @Composable
@@ -162,7 +167,8 @@ inline fun <reified T : Any> rememberDataSaverListState(
     initialValue: List<T>,
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     async: Boolean = true,
-    senseExternalDataChange: Boolean = false
+    senseExternalDataChange: Boolean = false,
+    coroutineScope: CoroutineScope? = null,
 ): DataSaverMutableListState<T> {
     val saverInterface = getLocalDataSaverInterface()
     var state: DataSaverMutableListState<T>? = null
@@ -213,7 +219,8 @@ inline fun <reified T : Any> rememberDataSaverListState(
             key,
             initialValue,
             savePolicy,
-            async
+            async,
+            coroutineScope
         ).also { state = it }
     }
 }
@@ -228,6 +235,7 @@ inline fun <reified T : Any> rememberDataSaverListState(
  * @param initialValue T default value if no data persistence has been done
  * @param savePolicy how and when to save data, see [SavePolicy]
  * @param async  whether to save data asynchronously
+ * @param coroutineScope CoroutineScope? the scope to launch coroutine, if null, it will create one with [Dispatchers.IO]
  * @return DataSaverMutableListState<T>
  */
 inline fun <reified T> mutableDataSaverListStateOf(
@@ -236,6 +244,7 @@ inline fun <reified T> mutableDataSaverListStateOf(
     initialValue: List<T> = emptyList(),
     savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     async: Boolean = false,
+    coroutineScope: CoroutineScope? = null
 ): DataSaverMutableListState<T> {
     val data = try {
         if (!dataSaverInterface.contains(key)) initialValue
@@ -245,7 +254,7 @@ inline fun <reified T> mutableDataSaverListStateOf(
         restore ?: throw e
         DataSaverConverter.convertStringToList<T>(dataSaverInterface.readData(key, "[]"), restore)
     }
-    return DataSaverMutableListState(dataSaverInterface, key, data, savePolicy, async)
+    return DataSaverMutableListState(dataSaverInterface, key, data, savePolicy, async, coroutineScope)
 }
 
 internal fun <T> List<T>.deepEquals(other: List<T>): Boolean {
