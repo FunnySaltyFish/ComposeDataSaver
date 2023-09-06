@@ -4,8 +4,8 @@ import android.os.Parcelable
 import com.funny.data_saver.core.DataSaverInterface
 import com.tencent.mmkv.MMKV
 
-class DataSaverMMKV(
-    private val kv: MMKV,
+open class DataSaverMMKV(
+    val kv: MMKV,
     senseExternalDataChange: Boolean = false
 ) : DataSaverInterface(senseExternalDataChange) {
     // MMKV doesn't support listener, so we manually notify the listener

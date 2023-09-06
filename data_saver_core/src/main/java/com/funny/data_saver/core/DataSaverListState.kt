@@ -135,7 +135,7 @@ class DataSaverMutableListState<T>(
  * @param autoSave Boolean whether to do data persistence each time you do assignment
  * @return DataSaverMutableState<T>
  */
-@Deprecated("Use another function with parameter `savePolicy` instead", ReplaceWith("rememberDataSaverListState(key, initialValue)"))
+@Deprecated("Use another function with parameter `savePolicy` instead", ReplaceWith("rememberDataSaverListState(key=key, initialValue=default)"))
 @Composable
 inline fun <reified T : Any> rememberDataSaverListState(
     key: String,

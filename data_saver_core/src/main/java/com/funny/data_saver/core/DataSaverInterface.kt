@@ -28,7 +28,7 @@ abstract class DataSaverInterface(val senseExternalDataChange: Boolean = false) 
 /**
  * Default implementation using [SharedPreferences] to save data
  */
-class DataSaverPreferences(
+open class DataSaverPreferences(
     private val preference: SharedPreferences,
     senseExternalDataChange: Boolean = false
 ) : DataSaverInterface(senseExternalDataChange) {

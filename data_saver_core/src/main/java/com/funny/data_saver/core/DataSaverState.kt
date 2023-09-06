@@ -36,7 +36,8 @@ class DataSaverMutableState<T>(
     private val coroutineScope: CoroutineScope? = null
 ) : MutableState<T> {
     private val state = mutableStateOf(initialValue)
-    private var job: Job? = null
+    // current data saving job
+    var job: Job? by mutableStateOf(null)
     private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
         coroutineScope ?: CoroutineScope(Dispatchers.IO)
     }
@@ -165,7 +166,7 @@ class DataSaverMutableState<T>(
  */
 @Deprecated(
     "Use another function with parameter `savePolicy` instead",
-    ReplaceWith("rememberDataSaverState(key, initialValue)")
+    ReplaceWith("rememberDataSaverState(key=key, initialValue=default)")
 )
 @Composable
 inline fun <reified T> rememberDataSaverState(
