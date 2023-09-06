@@ -2,25 +2,16 @@ package com.funny.composedatasaver
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.funny.composedatasaver.ui.ExampleBean
 import com.funny.composedatasaver.ui.ExampleComposable
-import com.funny.composedatasaver.ui.ThemeType
 import com.funny.composedatasaver.ui.theme.FunnyTheme
-import com.funny.data_saver.core.DataSaverConverter.registerTypeConverters
 import com.funny.data_saver.core.LocalDataSaver
-import com.funny.data_saver_mmkv.DefaultDataSaverMMKV
-import com.tencent.mmkv.MMKV
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val Context.dataStore : DataStore<Preferences> by preferencesDataStore("dataStore")
 
@@ -29,19 +20,12 @@ class ExampleActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // init preferences
-        // val dataSaverPreferences = DataSaverPreferences(applicationContext)
-
-        // If you want to use [MMKV](https://github.com/Tencent/MMKV) to save data
-        MMKV.initialize(applicationContext)
-        val dataSaverMMKV = DefaultDataSaverMMKV
+        val dataSaverMMKV = AppConfig.dataSaver
         // or DataSaverMMKV(MMKV.defaultMMKV())
         // you can use DefaultDataSaverMMKV like `DefaultDataSaverMMKV.readData(key, default)` and `DefaultDataSaverMMKV.saveData(key, value) anywhere`
 
         // if you want to use [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) to save data
         // val dataSaverDataStorePreferences = DataSaverDataStorePreferences(applicationContext.dataStore)
-
-        registerAllTypeConverters()
 
         setContent {
             FunnyTheme {
@@ -56,16 +40,3 @@ class ExampleActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-fun registerAllTypeConverters() {
-    // cause we want to save custom bean, we provide a converter to convert it into String
-    registerTypeConverters<ExampleBean?>(
-        save = { bean -> Json.encodeToString(bean) },
-        restore = { str ->
-            Log.d("ExampleActivity", "restore ExampleBean? from string: $str")
-            Json.decodeFromString(str)
-        }
-    )
-
-    registerTypeConverters<ThemeType>(save = ThemeType.Saver, restore = ThemeType.Restorer)
-}

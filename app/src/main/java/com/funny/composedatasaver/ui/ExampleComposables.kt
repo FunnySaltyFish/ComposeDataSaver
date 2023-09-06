@@ -1,5 +1,7 @@
 package com.funny.composedatasaver.ui
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,7 +29,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,12 +44,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.funny.composedatasaver.AppConfig
 import com.funny.composedatasaver.Constant
 import com.funny.composedatasaver.Constant.KEY_BEAN_EXAMPLE
 import com.funny.composedatasaver.Constant.KEY_BOOLEAN_EXAMPLE
 import com.funny.composedatasaver.Constant.KEY_STRING_EXAMPLE
 import com.funny.composedatasaver.ExampleParcelable
-import com.funny.composedatasaver.registerAllTypeConverters
+import com.funny.composedatasaver.appCtx
+import com.funny.composedatasaver.extensions.toastOnUI
 import com.funny.data_saver.core.DataSaverConverter
 import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverMutableState
@@ -58,6 +63,10 @@ import com.funny.data_saver.core.rememberDataSaverListState
 import com.funny.data_saver.core.rememberDataSaverState
 import com.funny.data_saver_mmkv.DataSaverMMKV
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -84,18 +93,14 @@ val EmptyBean = ExampleBean(233, "FunnySaltyFish")
 
 @ExperimentalSerializationApi
 @Composable
- @Preview
+@Preview
 fun ExampleComposable() {
     // get dataSaver                          | 获取 DataSaverInterface
     // you can use this to save data manually | 您可以使用此变量做手动保存
     val dataSaverInterface = getLocalDataSaverInterface()
 
     // support @Preview by additionally register the type converter
-    // normally [registerAllTypeConverters()] should be called in Application.onCreate() or Activity.onCreate()
     val isInspectMode = LocalInspectionMode.current
-    SideEffect {
-        if (isInspectMode) registerAllTypeConverters()
-    }
 
     // you can set [savePolicy] to other types (see [SavePolicy] ) to prevent saving too frequently
     // if you set it to SavePolicy.NEVER , you need to saveData by yourself
@@ -111,14 +116,14 @@ fun ExampleComposable() {
         async = true
     )
 
-    var booleanExample by rememberDataSaverState(KEY_BOOLEAN_EXAMPLE, false)
+    var booleanExample by rememberDataSaverState(key = KEY_BOOLEAN_EXAMPLE, initialValue = false)
 
-    var beanExample by rememberDataSaverState(KEY_BEAN_EXAMPLE, default = EmptyBean)
+    var beanExample by rememberDataSaverState(key = KEY_BEAN_EXAMPLE, initialValue = EmptyBean)
 
     // Among our basic implementations, only MMKV supports `Parcelable` by default
     var parcelableExample by rememberDataSaverState(
         key = "parcelable_example",
-        default = ExampleParcelable("FunnySaltyFish", 20)
+        initialValue = ExampleParcelable("FunnySaltyFish", 20)
     )
 
     Column(
@@ -164,6 +169,10 @@ fun ExampleComposable() {
 
         SaveWhenDisposedExample()
 
+        CustomCoroutineScopeAndViewModelSample()
+
+        TimeConsumingJobExample()
+
 
     }
 }
@@ -171,7 +180,7 @@ fun ExampleComposable() {
 @Composable
 private fun ListExample() {
     var listExample by rememberDataSaverListState(
-        key = "key_list_example", default = listOf(
+        key = "key_list_example", initialValue = listOf(
             EmptyBean.copy(label = "Name 1"),
             EmptyBean.copy(label = "Name 2"),
             EmptyBean.copy(label = "Name 3")
@@ -250,14 +259,13 @@ private fun ColumnScope.NullableExample() {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 @Composable
 private fun ColumnScope.SenseExternalDataChangeExample() {
     val context = LocalContext.current
     val dataSaver = if (LocalInspectionMode.current) DataSaverInMemory(true) else
-        // DataSaverDataStorePreferences(context.dataStore, true)
+    // DataSaverDataStorePreferences(context.dataStore, true)
         DataSaverMMKV(MMKV.defaultMMKV(), true)
-        // DataSaverPreferences(context, true)
+    // DataSaverPreferences(context, true)
     Heading(text = "Sense External Data Change Example")
     CompositionLocalProvider(LocalDataSaver provides dataSaver) {
         val key = "sense_external_data_change_example"
@@ -362,7 +370,7 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
 private fun CustomSealedClassExample() {
     var themeType: ThemeType by rememberDataSaverState(
         key = "key_theme_type",
-        default = ThemeType.DynamicNative
+        initialValue = ThemeType.DynamicNative
     )
     Heading(text = "Saving custom Sealed Class") // 保存自定义类型的示例
     Column(
@@ -382,6 +390,78 @@ private fun CustomSealedClassExample() {
         }
         RadioTile(text = "动态取色", selected = themeType == ThemeType.DynamicNative) {
             themeType = ThemeType.DynamicNative
+        }
+    }
+}
+
+@Composable
+private fun CustomCoroutineScopeAndViewModelSample() {
+    Heading(text = "Use custom CoroutineScope and ViewModel")
+    val vm: MainViewModel = viewModel()
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        OutlinedTextField(value = vm.username, onValueChange = { vm.username = it }, label = {
+            Text(text = "Username")
+        })
+
+        OutlinedTextField(value = vm.password, onValueChange = { vm.password = it }, label = {
+            Text(text = "Password")
+        })
+    }
+}
+
+@Composable
+private fun TimeConsumingJobExample() {
+    class TimeConsumingDataSaver(kv: MMKV) : DataSaverMMKV(kv, true) {
+        override suspend fun <T> saveDataAsync(key: String, data: T) {
+            appCtx.toastOnUI("start to save data, it takes 5s...")
+            // mock time consuming, it might be HTTP request or complex data saving in real world
+            delay(5000)
+            super.saveDataAsync(key, data)
+            appCtx.toastOnUI("finish saving data. key=$key, data=$data")
+        }
+    }
+
+    CompositionLocalProvider(LocalDataSaver provides TimeConsumingDataSaver(AppConfig.dataSaver.kv)) {
+        Heading(text = "Time consuming example, wait until finished\n You cannot go back until it finished")
+        // here we pass a custom coroutineScope
+        val scope = remember {
+            CoroutineScope(Dispatchers.IO)
+        }
+        val state =
+            rememberDataSaverState(
+                key = "time_consuming_job",
+                initialValue = 0,
+                coroutineScope = scope
+            )
+        Button(onClick = {
+            scope.launch {
+                state.value = state.value + 1
+            }
+        }) {
+            Text(text = "Submit(curr value: ${state.value})")
+        }
+
+        var showDialog by remember { mutableStateOf(false) }
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text(text = "Close")
+                    }
+                },
+                text = {
+                    Text(text = "Current job is not finished, please wait until it is finished!")
+                }
+            )
+        }
+        LaunchedEffect(key1 = state.job) {
+            Log.d("ExampleComposable", "TimeConsumingJobExample job: ${state.job}")
+        }
+
+        BackHandler(state.job?.isCompleted == false) {
+            showDialog = true
+            Log.d("ExampleComposable", "TimeConsumingJobExample is not finished")
         }
     }
 }
