@@ -383,6 +383,7 @@ fun getLocalDataSaverInterface() =
 目前，此库已在下列项目中使用：
 
 - [FunnySaltyFish/FunnyTranslation: 基于Jetpack Compose开发的翻译软件，支持多引擎、插件化~ | Jetpack Compose+MVVM+协程+Room](https://github.com/FunnySaltyFish/FunnyTranslation)
+- [Github 中搜索](https://github.com/search?q=mutableDataSaverStateOf&type=code)
 
 如果您正在使用此项目，也欢迎您告知我以补充。
 

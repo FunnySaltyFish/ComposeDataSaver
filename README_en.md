@@ -274,7 +274,7 @@ The implementaion using `DataStorePreference` supports this feature well by defu
 The library has been used in the following projects:
 
 - [FunnySaltyFish/FunnyTranslation: 基于Jetpack Compose开发的翻译软件，支持多引擎、插件化~ | Jetpack Compose+MVVM+协程+Room](https://github.com/FunnySaltyFish/FunnyTranslation)
-- [cy745/LMusic: 一个简洁且独特的音乐播放器，在其中学习使用了MVVM架构 ](https://github.com/cy745/LMusic)
+- [Search in Github](https://github.com/search?q=mutableDataSaverStateOf&type=code)
 
 If you are using this library in your project, please let me know and I will add it to the list.
 
