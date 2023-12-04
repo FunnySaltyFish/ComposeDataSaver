@@ -289,7 +289,11 @@ inline fun <reified T> mutableDataSaverStateOf(
     } catch (e: Exception) {
         val restore = DataSaverConverter.findRestorer<T>()
         restore ?: throw e
-        restore(dataSaverInterface.readData(key, "")) as T
+        runCatching {
+            restore(dataSaverInterface.readData(key, "")) as T
+        }.onFailure {
+            DataSaverLogger.e("error while restoring data(key=$key), set to default. StackTrace:\n${it.stackTraceToString()}")
+        }.getOrDefault(initialValue)
     }
     return DataSaverMutableState(dataSaverInterface, key, data, savePolicy, async, coroutineScope)
 }
