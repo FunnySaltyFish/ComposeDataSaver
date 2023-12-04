@@ -10,7 +10,7 @@ task generateSourcesJar(type: Jar) {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
     buildToolsVersion "33.0.0"
 
     defaultConfig {

@@ -43,6 +43,7 @@ open class DataSaverPreferences(
     private val logger by lazy { DataSaverLogger("DataSaverPreferences") }
     private val onSharedPreferenceChangeListener by lazy {
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            key ?: return@OnSharedPreferenceChangeListener
             logger.d("data changed: $key -> ${sharedPreferences.all[key]}, subscriptionCount: ${externalDataChangedFlow?.subscriptionCount?.value}")
             externalDataChangedFlow?.tryEmit(key to sharedPreferences.all[key])
         }
