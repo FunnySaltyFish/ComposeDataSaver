@@ -194,14 +194,13 @@ private fun ListExample() {
         item {
             Row {
                 Button(onClick = {
-                    listExample =
-                        listExample + EmptyBean.copy(label = "Name ${listExample.size + 1}")
+                    listExample += EmptyBean.copy(label = "Name ${listExample.size + 1}")
                 }) {
                     Text(text = "Add To List")
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Button(onClick = {
-                    if (listExample.isNotEmpty()) listExample = listExample.dropLast(1)
+                    if (listExample.isNotEmpty()) listExample.removeAt(listExample.lastIndex)
                 }) {
                     Text(text = "Remove From List")
                 }
@@ -259,6 +258,7 @@ private fun ColumnScope.NullableExample() {
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 @Composable
 private fun ColumnScope.SenseExternalDataChangeExample() {
     val context = LocalContext.current
@@ -325,7 +325,7 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
 
         Spacer(modifier = Modifier.height(4.dp))
         val keyList = "sense_external_data_change_example_list"
-        val list: List<ExampleBean> by rememberDataSaverListState(
+        val list by rememberDataSaverListState(
             key = keyList,
             initialValue = listOf(ExampleBean(0, "initial")),
             senseExternalDataChange = true

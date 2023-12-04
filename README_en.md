@@ -280,5 +280,5 @@ If you are using this library in your project, please let me know and I will add
 
 If you have any questions, please feel free to create an issue. PRs are also welcome.
 
-If this library do help, **a star** will be appreciated. Thanks!
+If this library helps, **a star** will be appreciated. Thanks!
 
