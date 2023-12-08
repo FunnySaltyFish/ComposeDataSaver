@@ -1,7 +1,11 @@
 package com.funny.data_saver.core
 
-import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.funny.data_saver.core.DataSaverConverter.findRestorer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,15 +37,15 @@ class DataSaverMutableListState<T>(
     private val savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     private val async: Boolean = false,
     private val coroutineScope: CoroutineScope? = null
-) : MutableState<SnapshotStateList<T>> {
-    private var stateList = initialValue.toMutableStateList()
+) : MutableState<List<T>> {
+    private val listState = mutableStateOf(initialValue)
     private var job: Job? = null
     private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
         coroutineScope ?: CoroutineScope(Dispatchers.IO)
     }
 
-    override var value: SnapshotStateList<T>
-        get() = stateList
+    override var value: List<T>
+        get() = listState.value
         set(value) {
             doSetValue(value)
         }
@@ -62,11 +66,11 @@ class DataSaverMutableListState<T>(
         if (autoSave) SavePolicy.IMMEDIATELY else SavePolicy.NEVER
     )
 
-    operator fun setValue(thisObj: Any?, property: KProperty<*>, value: SnapshotStateList<T>) {
+    operator fun setValue(thisObj: Any?, property: KProperty<*>, value: List<T>) {
         doSetValue(value)
     }
 
-    operator fun getValue(thisObj: Any?, property: KProperty<*>): SnapshotStateList<T> = stateList
+    operator fun getValue(thisObj: Any?, property: KProperty<*>): List<T> = listState.value
 
     fun saveData() {
         val value = value
@@ -86,7 +90,7 @@ class DataSaverMutableListState<T>(
         }
     }
 
-    fun valueChangedSinceInit() = stateList.deepEquals(initialValue)
+    fun valueChangedSinceInit() = listState.value.deepEquals(initialValue.toList())
 
     /**
      * remove the key and set the value to `replacement`
@@ -94,27 +98,19 @@ class DataSaverMutableListState<T>(
      */
     fun remove(replacement: List<T> = initialValue) {
         dataSaverInterface.remove(key)
-        clearAndAddAll(replacement)
+        listState.value = replacement
         log("remove: key: $key, replace the value to $replacement")
     }
 
     fun setValueWithoutSave(v: List<T>) {
-        if (!v.deepEquals(stateList)) {
-            clearAndAddAll(v)
-        }
+        if (!v.deepEquals(listState.value)) listState.value = v
     }
 
     private fun doSetValue(value: List<T>) {
-        val oldValue = this.stateList
-        clearAndAddAll(value)
-        if (savePolicy == SavePolicy.IMMEDIATELY && !oldValue.deepEquals(value)) {
+        val oldValue = this.listState.value
+        this.listState.value = value
+        if (!oldValue.deepEquals(value) && savePolicy == SavePolicy.IMMEDIATELY)
             saveData()
-        }
-    }
-
-    private fun clearAndAddAll(list: List<T>) {
-        stateList.clear()
-        stateList.addAll(list)
     }
 
     companion object {
@@ -129,7 +125,7 @@ class DataSaverMutableListState<T>(
         }
     }
 
-    override fun component1(): SnapshotStateList<T> = value
+    override fun component1(): List<T> = value
 
     override fun component2(): (List<T>) -> Unit = ::doSetValue
 }
