@@ -200,7 +200,9 @@ private fun ListExample() {
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Button(onClick = {
-                    if (listExample.isNotEmpty()) listExample.removeAt(listExample.lastIndex)
+                    if (listExample.isNotEmpty()) {
+                        listExample = listExample.dropLast(1)
+                    }
                 }) {
                     Text(text = "Remove From List")
                 }
