@@ -1,6 +1,5 @@
 package com.funny.data_saver.ui.theme
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
@@ -9,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.funny.cmaterialcolors.MaterialColors.Companion.Blue500
 import com.funny.cmaterialcolors.MaterialColors.Companion.BlueA700
+import moe.tlaster.precompose.PreComposeApp
 
-@SuppressLint("ConflictingOnColor")
 private val DarkColorPalette = darkColors(
     primary = Color(0xff3d557b),
     primaryVariant = BlueA700,
@@ -54,10 +53,12 @@ fun FunnyTheme(
         LightColorPalette
     }
 
-    MaterialTheme(
-        colors = colors,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    PreComposeApp {
+        MaterialTheme(
+            colors = colors,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }

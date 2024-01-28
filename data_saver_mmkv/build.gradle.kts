@@ -45,7 +45,7 @@ dependencies {
 //    compileOnly(libs.kotlin.stdlib)
 
     compileOnly(libs.mmkv)
-    compileOnly(libs.kotlinx.coroutines.core)
+//    compileOnly(libs.kotlinx.coroutines.core)
 
     implementation(project(":data_saver_core"))
 

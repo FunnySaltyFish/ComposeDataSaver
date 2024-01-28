@@ -1,7 +1,5 @@
 package com.funny.data_saver.ui
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,39 +28,34 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.funny.data_saver.AppConfig
 import com.funny.data_saver.Constant
 import com.funny.data_saver.Constant.KEY_BEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_BOOLEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_STRING_EXAMPLE
-import com.funny.data_saver.ExampleParcelable
-import com.funny.data_saver.appCtx
-import com.funny.data_saver.extensions.toastOnUI
 import com.funny.data_saver.core.DataSaverConverter
 import com.funny.data_saver.core.DataSaverInMemory
+import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.core.DataSaverMutableState
 import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver.core.SavePolicy
 import com.funny.data_saver.core.getLocalDataSaverInterface
 import com.funny.data_saver.core.rememberDataSaverListState
 import com.funny.data_saver.core.rememberDataSaverState
-import com.funny.data_saver_mmkv.DataSaverMMKV
-import com.tencent.mmkv.MMKV
+import com.funny.data_saver.kmp.Log
+import com.funny.data_saver.kmp.viewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -71,6 +64,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import moe.tlaster.precompose.navigation.BackHandler
 import kotlin.random.Random
 
 /**
@@ -93,7 +87,6 @@ val EmptyBean = ExampleBean(233, "FunnySaltyFish")
 
 @ExperimentalSerializationApi
 @Composable
-@Preview
 fun ExampleComposable() {
     // get dataSaver                          | 获取 DataSaverInterface
     // you can use this to save data manually | 您可以使用此变量做手动保存
@@ -120,11 +113,6 @@ fun ExampleComposable() {
 
     var beanExample by rememberDataSaverState(key = KEY_BEAN_EXAMPLE, initialValue = EmptyBean)
 
-    // Among our basic implementations, only MMKV supports `Parcelable` by default
-    var parcelableExample by rememberDataSaverState(
-        key = "parcelable_example",
-        initialValue = ExampleParcelable("FunnySaltyFish", 20)
-    )
 
     Column(
         Modifier
@@ -143,13 +131,7 @@ fun ExampleComposable() {
             booleanExample = it
         })
 
-        Heading(text = "Saving Parcelable") // 保存布尔值的示例
-        Text(parcelableExample.toString())
-        Button(onClick = {
-            parcelableExample = parcelableExample.copy(age = parcelableExample.age + 1)
-        }) {
-            Text(text = "Add age by 1")
-        }
+
 
         Heading(text = "Saving Custom Data Bean") // 保存自定义类型的示例
         Text(text = beanExample.toString())
@@ -158,6 +140,8 @@ fun ExampleComposable() {
         }) {
             Text(text = "Add bean's id") // id自加
         }
+
+        ParcelableExample()
 
         ListExample()
 
@@ -176,6 +160,9 @@ fun ExampleComposable() {
 
     }
 }
+
+@Composable
+expect fun ParcelableExample()
 
 @Composable
 private fun ListExample() {
@@ -263,11 +250,7 @@ private fun ColumnScope.NullableExample() {
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
 private fun ColumnScope.SenseExternalDataChangeExample() {
-    val context = LocalContext.current
-    val dataSaver = if (LocalInspectionMode.current) DataSaverInMemory(true) else
-    // DataSaverDataStorePreferences(context.dataStore, true)
-        DataSaverMMKV(MMKV.defaultMMKV(), true)
-    // DataSaverPreferences(context, true)
+    val dataSaver = getSensorExternalDataSaver()
     Heading(text = "Sense External Data Change Example")
     CompositionLocalProvider(LocalDataSaver provides dataSaver) {
         val key = "sense_external_data_change_example"
@@ -413,17 +396,17 @@ private fun CustomCoroutineScopeAndViewModelSample() {
 
 @Composable
 private fun TimeConsumingJobExample() {
-    class TimeConsumingDataSaver(kv: MMKV) : DataSaverMMKV(kv, true) {
+    class TimeConsumingDataSaver : DataSaverInMemory() {
         override suspend fun <T> saveDataAsync(key: String, data: T) {
-            appCtx.toastOnUI("start to save data, it takes 5s...")
+            Log.i("start to save data, it takes 5s...")
             // mock time consuming, it might be HTTP request or complex data saving in real world
             delay(5000)
             super.saveDataAsync(key, data)
-            appCtx.toastOnUI("finish saving data. key=$key, data=$data")
+            Log.i("finish saving data. key=$key, data=$data")
         }
     }
 
-    CompositionLocalProvider(LocalDataSaver provides TimeConsumingDataSaver(AppConfig.dataSaver.kv)) {
+    CompositionLocalProvider(LocalDataSaver provides TimeConsumingDataSaver()) {
         Heading(text = "Time consuming example, wait until finished\n You cannot go back until it finished")
         // here we pass a custom coroutineScope
         val scope = remember {
@@ -468,7 +451,6 @@ private fun TimeConsumingJobExample() {
     }
 }
 
-@Preview
 @Composable
 fun PreviewExample() {
     var checked by rememberDataSaverState(key = "preview_string", initialValue = false)
@@ -479,7 +461,7 @@ fun PreviewExample() {
 
 
 @Composable
-private fun Heading(text: String) {
+internal fun Heading(text: String) {
     Spacer(modifier = Modifier.height(8.dp))
     Text(text, fontWeight = FontWeight.W600, fontSize = 18.sp)
 }
@@ -501,3 +483,7 @@ private fun RadioTile(
         RadioButton(selected = selected, onClick = onClick)
     }
 }
+
+@Composable
+@ReadOnlyComposable
+internal expect fun getSensorExternalDataSaver(): DataSaverInterface

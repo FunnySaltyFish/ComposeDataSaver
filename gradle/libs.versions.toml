@@ -13,13 +13,14 @@ androidx-material = "1.11.0"
 androidx-test-junit = "1.1.5"
 compose = "1.6.0"
 compose-bom = "2024.01.00"
-compose-compiler = "1.5.8"
+compose-compiler = "1.5.7"
 compose-plugin = "1.5.11"
 junit = "4.13.2"
 kotlin = "1.9.21"
 kotlinx-serialization = "1.6.1"
 kotlinx-coroutines = "1.7.3"
 datastore = "1.0.0"
+precompose = "1.5.10"
 
 [libraries]
 #org.jetbrains.kotlin:kotlin-stdlib-jdk8
@@ -50,9 +51,12 @@ mmkv = { group = "com.tencent", name = "mmkv", version = "1.2.14" }
 # data store
 datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+precompose = { module = "moe.tlaster:precompose", version.ref = "precompose" }
+precompose-viewmodel = { module = "moe.tlaster:precompose-viewmodel", version.ref = "precompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

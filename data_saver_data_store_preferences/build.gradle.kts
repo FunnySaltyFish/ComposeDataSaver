@@ -46,7 +46,7 @@ dependencies {
 
     compileOnly(libs.datastore)
     compileOnly(libs.datastore.preferences)
-    compileOnly(libs.kotlinx.coroutines.core)
+//    compileOnly(libs.kotlinx.coroutines.core)
 
     implementation(project(":data_saver_core"))
 

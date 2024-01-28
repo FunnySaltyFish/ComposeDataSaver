@@ -28,7 +28,7 @@ abstract class DataSaverInterface(val senseExternalDataChange: Boolean = false) 
  * Using [HashMap] to save data in memory, can be used for testing
  * @property map MutableMap<String, Any?>
  */
-class DataSaverInMemory(senseExternalDataChange: Boolean = false) : DataSaverInterface(senseExternalDataChange) {
+open class DataSaverInMemory(senseExternalDataChange: Boolean = false) : DataSaverInterface(senseExternalDataChange) {
     inner class ObservableMap() {
         private val map by lazy {
             mutableMapOf<String, Any?>()

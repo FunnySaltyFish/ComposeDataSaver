@@ -9,6 +9,8 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.compose")
     id("com.android.application")
+    // kotlinx-serilization
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 kotlin {
@@ -51,7 +53,6 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
-
             implementation(project(":data_saver_core"))
             implementation(compose.material)
             implementation(compose.ui)
@@ -59,6 +60,9 @@ kotlin {
             implementation(compose.components.resources)
 
             implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.precompose)
+            implementation(libs.precompose.viewmodel) // For ViewModel intergration
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

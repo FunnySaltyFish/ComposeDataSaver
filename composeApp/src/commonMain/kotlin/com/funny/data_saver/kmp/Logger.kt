@@ -1,3 +1,4 @@
+package com.funny.data_saver.kmp
 
 expect object Logger {
     fun d(msg: String) : Unit

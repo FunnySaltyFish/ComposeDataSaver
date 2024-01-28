@@ -1,9 +1,9 @@
 package com.funny.data_saver.ui
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.funny.data_saver.AppConfig
 import com.funny.data_saver.core.mutableDataSaverStateOf
+import moe.tlaster.precompose.viewmodel.ViewModel
+import moe.tlaster.precompose.viewmodel.viewModelScope
 
 class MainViewModel: ViewModel() {
     private val dataSaver get() = AppConfig.dataSaver
