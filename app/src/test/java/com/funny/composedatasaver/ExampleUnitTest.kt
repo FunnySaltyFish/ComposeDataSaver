@@ -1,4 +1,4 @@
-package com.funny.composedatasaver
+package com.funny.data_saver
 
 import org.junit.Test
 

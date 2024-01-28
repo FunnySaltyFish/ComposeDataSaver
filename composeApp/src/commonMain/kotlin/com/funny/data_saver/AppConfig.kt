@@ -1,37 +1,25 @@
-package com.funny.composedatasaver
+package com.funny.data_saver
 
 import Log
-import com.funny.composedatasaver.ui.ExampleBean
-import com.funny.composedatasaver.ui.ThemeType
+import com.funny.data_saver.ui.ExampleBean
+import com.funny.data_saver.ui.ThemeType
 import com.funny.data_saver.core.DataSaverConverter
-import com.funny.data_saver_mmkv.DataSaverMMKV
-import com.tencent.mmkv.MMKV
+import com.funny.data_saver.core.DataSaverInterface
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-object AppConfig {
-    val dataSaver by lazy {
-        DataSaverMMKV(kv = MMKV.defaultMMKV(), senseExternalDataChange = true)
-        // or DataSaverPreferences(appCtx.getSharedPreferences("default", 0))
-        // or DataSaverDataStorePreferences(appCtx.dataStore)
-    }
-
-    init {
-        registerAllTypeConverters()
-    }
-
-
+expect object AppConfig {
+    val dataSaver: DataSaverInterface
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-private fun registerAllTypeConverters() {
+internal fun registerAllTypeConverters() {
     // cause we want to save custom bean, we provide a converter to convert it into String
     DataSaverConverter.registerTypeConverters<ExampleBean?>(
         save = { bean -> Json.encodeToString(bean) },
         restore = { str ->
-            Log.d("ExampleActivity", "restore ExampleBean? from string: $str")
+            Log.d("AppConfig", "restore ExampleBean? from string: $str")
             Json.decodeFromString(str)
         }
     )

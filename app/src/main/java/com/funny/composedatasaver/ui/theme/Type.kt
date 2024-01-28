@@ -1,4 +1,4 @@
-package com.funny.composedatasaver.ui.theme
+package com.funny.data_saver.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

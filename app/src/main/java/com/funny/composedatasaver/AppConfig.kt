@@ -1,8 +1,8 @@
-package com.funny.composedatasaver
+package com.funny.data_saver
 
 import android.util.Log
-import com.funny.composedatasaver.ui.ExampleBean
-import com.funny.composedatasaver.ui.ThemeType
+import com.funny.data_saver.ui.ExampleBean
+import com.funny.data_saver.ui.ThemeType
 import com.funny.data_saver.core.DataSaverConverter
 import com.funny.data_saver_mmkv.DataSaverMMKV
 import com.tencent.mmkv.MMKV

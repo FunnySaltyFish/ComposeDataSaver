@@ -1,4 +1,4 @@
-package com.funny.composedatasaver.ui
+package com.funny.data_saver.ui
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -45,14 +45,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.funny.composedatasaver.AppConfig
-import com.funny.composedatasaver.Constant
-import com.funny.composedatasaver.Constant.KEY_BEAN_EXAMPLE
-import com.funny.composedatasaver.Constant.KEY_BOOLEAN_EXAMPLE
-import com.funny.composedatasaver.Constant.KEY_STRING_EXAMPLE
-import com.funny.composedatasaver.ExampleParcelable
-import com.funny.composedatasaver.appCtx
-import com.funny.composedatasaver.extensions.toastOnUI
+import com.funny.data_saver.AppConfig
+import com.funny.data_saver.Constant
+import com.funny.data_saver.Constant.KEY_BEAN_EXAMPLE
+import com.funny.data_saver.Constant.KEY_BOOLEAN_EXAMPLE
+import com.funny.data_saver.Constant.KEY_STRING_EXAMPLE
+import com.funny.data_saver.ExampleParcelable
+import com.funny.data_saver.appCtx
+import com.funny.data_saver.extensions.toastOnUI
 import com.funny.data_saver.core.DataSaverConverter
 import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverMutableState

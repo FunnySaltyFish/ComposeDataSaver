@@ -1,4 +1,4 @@
-package com.funny.composedatasaver.ui.theme
+package com.funny.data_saver.ui.theme
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.isSystemInDarkTheme

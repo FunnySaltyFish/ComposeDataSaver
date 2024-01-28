@@ -9,7 +9,7 @@ android {
     buildToolsVersion "33.0.0"
 
     defaultConfig {
-        applicationId "com.funny.composedatasaver"
+        applicationId "com.funny.data_saver"
         minSdk 21
         targetSdk 33
         versionCode 1

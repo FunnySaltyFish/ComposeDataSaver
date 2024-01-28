@@ -12,6 +12,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xmulti-platform", "-Xexpect-actual-classes")
+    }
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -26,15 +30,35 @@ kotlin {
         val desktopMain by getting
         
         androidMain.dependencies {
+            implementation(project(":data_saver_mmkv"))
+            implementation(project(":data_saver_data_store_preferences"))
+
+            /**
+             * implementation project(path: ":data_saver_mmkv")
+             *     implementation 'com.tencent:mmkv:1.2.14'
+             *
+             *     // if you want to use DataStore
+             *     implementation project(path: ':data_saver_data_store_preferences')
+             *     def data_store_version = "1.0.0"
+             *     implementation "androidx.datastore:datastore:$data_store_version"
+             *     implementation "androidx.datastore:datastore-preferences:$data_store_version"
+             */
+            implementation(libs.mmkv)
+            implementation(libs.datastore)
+            implementation(libs.datastore.preferences)
+
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
-            
+
+            implementation(project(":data_saver_core"))
             implementation(compose.material)
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
+
+            implementation(libs.kotlinx.serialization.json)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -62,10 +86,10 @@ android {
             isMinifyEnabled = false
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
+//    compileOptions {
+//        sourceCompatibility = JavaVersion.VERSION_1_8
+//        targetCompatibility = JavaVersion.VERSION_1_8
+//    }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }

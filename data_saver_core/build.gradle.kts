@@ -1,7 +1,4 @@
 plugins {
-//    alias(libs.plugins.kotlinMultiplatform)
-//    alias(libs.plugins.androidLibrary)
-//    alias(libs.plugins.jetbrainsCompose)
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.compose")
     id("com.android.library")
@@ -25,6 +22,7 @@ kotlin {
 
         }
         commonMain.dependencies {
+            implementation(project.dependencies.platform(libs.compose.bom))
             implementation(compose.runtime)
             implementation(compose.foundation)
         }

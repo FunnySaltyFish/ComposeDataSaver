@@ -1,8 +1,8 @@
-package com.funny.composedatasaver.ui
+package com.funny.data_saver.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.funny.composedatasaver.AppConfig
+import com.funny.data_saver.AppConfig
 import com.funny.data_saver.core.mutableDataSaverStateOf
 
 class MainViewModel: ViewModel() {

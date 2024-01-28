@@ -1,4 +1,4 @@
-package com.funny.composedatasaver
+package com.funny.data_saver
 
 import android.content.Context
 import android.os.Bundle
@@ -8,8 +8,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.funny.composedatasaver.ui.ExampleComposable
-import com.funny.composedatasaver.ui.theme.FunnyTheme
+import com.funny.data_saver.ui.ExampleComposable
+import com.funny.data_saver.ui.theme.FunnyTheme
 import com.funny.data_saver.core.LocalDataSaver
 import kotlinx.serialization.ExperimentalSerializationApi
 

@@ -1,4 +1,4 @@
-package com.funny.composedatasaver.extensions
+package com.funny.data_saver.extensions
 
 import android.content.Context
 import android.widget.Toast

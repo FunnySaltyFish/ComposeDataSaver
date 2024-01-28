@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         maven("https://repo1.maven.org/maven2/")
-//        maven("https://maven.aliyun.com/repository/public/")
+        maven("https://maven.aliyun.com/repository/public/")
         maven("https://maven.aliyun.com/repository/google/")
         maven("https://maven.aliyun.com/repository/jcenter/")
         maven("https://jitpack.io")
@@ -27,5 +27,5 @@ dependencyResolutionManagement {
 rootProject.name = "ComposeDataSaver"
 include(":composeApp")
 include(":data_saver_core")
-//include(":data_saver_mmkv")
-//include(":data_saver_data_store_preferences")
+include(":data_saver_mmkv")
+include(":data_saver_data_store_preferences")

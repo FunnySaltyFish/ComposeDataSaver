@@ -1,4 +1,4 @@
-package com.funny.composedatasaver
+package com.funny.data_saver
 
 object Constant {
     const val KEY_STRING_EXAMPLE = "key_string_example"
