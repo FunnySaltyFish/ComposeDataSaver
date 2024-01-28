@@ -1,6 +1,6 @@
 package com.funny.data_saver.core
 
-import android.util.Log
+import com.funny.data_saver.kmp.Log
 
 class DataSaverLogger(private val tag: String) {
     fun d(msg: String) {

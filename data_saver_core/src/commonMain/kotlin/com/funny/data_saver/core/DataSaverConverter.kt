@@ -1,6 +1,7 @@
 package com.funny.data_saver.core
 
-import android.util.Log
+import com.funny.data_saver.kmp.Log
+
 
 object DataSaverConverter {
     val typeSaveConverters: MutableMap<Class<*>, (Any?) -> String> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableMapOf() }
