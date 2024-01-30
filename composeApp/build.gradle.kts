@@ -32,8 +32,8 @@ kotlin {
         val desktopMain by getting
         
         androidMain.dependencies {
-            implementation(project(":data_saver_mmkv"))
-            implementation(project(":data_saver_data_store_preferences"))
+            implementation(project(":data-saver-mmkv"))
+            implementation(project(":data-saver-data-store-preferences"))
 
             /**
              * implementation project(path: ":data_saver_mmkv")
@@ -53,7 +53,8 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
-            implementation(project(":data_saver_core"))
+            implementation(project(":data-saver-core"))
+
             implementation(compose.material)
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)

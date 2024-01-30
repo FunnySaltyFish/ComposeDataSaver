@@ -3,7 +3,7 @@
 | [![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 
-An elegant way to do data persistence in Jetpack Compose.
+An elegant way to do data persistence in Compose Multiplatform ( Android / JVM Desktop ).
 
 ```kotlin
 // booleanExample will be initialized to false
@@ -16,7 +16,6 @@ Switch(checked = booleanExample, onCheckedChange = {
 ```
 
 
-
 - :tada: Brevity: a nearly native style of coding
 - :tada: Low coupling: using abstract interface that does not restrict the implementation of the underlying persistence framework
 - :tada: Lightweight: no third-party libraries other than Compose are included by default. (the size of `sources-jar` is only about **10kb** for `core` and **1kb** per optional implementation)
@@ -24,7 +23,7 @@ Switch(checked = booleanExample, onCheckedChange = {
 
 
 <center>
-<img src="screenshot.jpg" alt="Example" style="zoom: 15%;" /></center>
+<img src="screenshot.png" alt="Example" style="zoom: 15%;" /></center>
 
 You can download the demo [here](demo.apk).
 

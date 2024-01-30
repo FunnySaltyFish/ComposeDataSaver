@@ -25,7 +25,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ComposeDataSaver"
+includeBuild("convention-plugins")
 include(":composeApp")
-include(":data_saver_core")
-include(":data_saver_mmkv")
-include(":data_saver_data_store_preferences")
+include(":data-saver-core")
+include(":data-saver-mmkv")
+include(":data-saver-data-store-preferences")

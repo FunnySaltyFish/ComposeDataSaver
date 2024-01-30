@@ -2,6 +2,14 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.compose")
     id("com.android.library")
+    id("convention.publication")
+}
+
+group = libs.versions.group.get()
+version = libs.versions.project.get()
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
 
 kotlin {
@@ -11,6 +19,8 @@ kotlin {
                 jvmTarget = "1.8"
             }
         }
+
+        publishAllLibraryVariants()
     }
 
     jvm("desktop")
@@ -57,15 +67,3 @@ android {
         debugImplementation(libs.compose.ui.tooling)
     }
 }
-
-//compose.desktop {
-//    application {
-//        mainClass = "MainKt"
-//
-//        nativeDistributions {
-//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-//            packageName = "com.funny.data_saver"
-//            packageVersion = "1.0.0"
-//        }
-//    }
-//}
