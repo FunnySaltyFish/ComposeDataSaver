@@ -10,7 +10,6 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    enableFeaturePreview("VERSION_CATALOGS")
     repositories {
         mavenCentral()
         maven("https://repo1.maven.org/maven2/")

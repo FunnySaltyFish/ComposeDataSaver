@@ -88,3 +88,30 @@ publishing {
 signing {
     sign(publishing.publications)
 }
+
+
+afterEvaluate {
+    // 设置所有的 publish 任务 需要在 sign 之后
+    // 我也不知道为什么需要手动这么写，但是 Gradle 一直报错，只好按着报错一点点尝试
+    // 最后写出了这一堆。。。
+    val signTasks = tasks.filter { it.name.startsWith("sign") && it.name != "sign"}
+
+    // project.logger.warn(signTasks.joinToString { it.name + ", " })
+    tasks.configureEach {
+        // project.logger.warn("task name: $name")
+        if (!name.startsWith("publish")) return@configureEach
+        if (name == "publish") return@configureEach
+
+        signTasks.forEach { signTask ->
+            this.dependsOn(signTask)
+        }
+    }
+
+    // Reason: Task ':data-saver-data-store-preferences:generateMetadataFileForReleasePublication' uses this output of task ':data-saver-data-store-preferences:generateSourcesJar' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+    val generateSourcesJar = tasks.findByName("generateSourcesJar") ?: return@afterEvaluate
+    tasks.configureEach {
+        if (!name.startsWith("generateMetadataFileFor")) return@configureEach
+
+        this.dependsOn(generateSourcesJar)
+    }
+}

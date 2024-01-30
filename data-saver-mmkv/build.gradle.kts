@@ -36,11 +36,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
+    namespace = "com.funny.data_saver_mmkv"
 }
 
 tasks.register<Jar>("generateSourcesJar") {
     from(android.sourceSets["main"].java.srcDirs)
-    classifier = "sources"
+//    archiveClassifier.set("sources")
 }
 
 dependencies {
