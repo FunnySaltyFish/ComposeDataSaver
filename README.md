@@ -33,7 +33,7 @@ booleanExample = true
 
 ## 引入
 
-在`settings.gradle`引入jitpack仓库位置
+在`settings.gradle`引入仓库位置
 
 ```bash
 dependencyResolutionManagement {
