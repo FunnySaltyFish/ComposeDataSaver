@@ -1,11 +1,11 @@
 # ComposeDataSaver
 
-| [![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/ComposeDataSaver) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [![Maven Central](https://img.shields.io/maven-central/v/io.github.FunnySaltyFish/data-saver-core)](https://central.sonatype.com/artifact/io.github.FunnySaltyFish/data-saver-core) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ |
 
 | [English Version](README_en.md) |
 
-优雅地在Jetpack Compose中完成数据持久化
+优雅地在 Compose Multiplatform ( Android / JVM Desktop ) 中完成数据持久化
 
 ```kotlin
 // booleanExample 初始化值为false
@@ -21,15 +21,13 @@ booleanExample = true
 - :tada: 轻巧：默认不引入除Compose外任何第三方库（主体jar包约**10kb**，可选的实现仅**1kb**）
 - :tada: 强大：支持基本的数据类型和自定义类型、支持List类型
 
-**注：此库是对Compose中使用其他框架（比如Preference、MMKV、DataStore）的封装，不是一个单独的数据保存框架**。您可以参考[此链接](https://juejin.cn/post/7144750071156834312)以了解它的设计思想。
+**注：此库是对Compose中使用其他框架（比如 Preference、MMKV、DataStore）的封装，不是一个单独的数据保存框架**。您可以参考[此链接](https://juejin.cn/post/7144750071156834312)以了解它的设计思想。
 
 
 
-<img src="screenshot.jpg" alt="Example" style="zoom: 15%;" />
+<img src="screenshot.png" alt="Example" style="zoom: 15%;" />
 
 您可以点击 [这里下载demo体验](demo.apk)（Debug 包，相较于 release 包较卡顿）
-
-
 
 ---
 
@@ -40,7 +38,7 @@ booleanExample = true
 ```bash
 dependencyResolutionManagement {
     repositories {
-        maven { url "https://jitpack.io" }
+        mavenCentral()
     }
 }
 ```
@@ -49,17 +47,20 @@ dependencyResolutionManagement {
 
 ```bash
 dependencies {
-    implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver:{tag}"
+    implementation "io.github.FunnySaltyFish:data-saver-core:{version}"
 }
 ```
 
+> 注意：自 v1.2.0 起，仓库转为 Compose Multiplatform，发布至 Maven Central，Group Id 也有改变。从 v1.2.0 之前升级版本时请注意更改
+
 ## 示例代码
-以下介绍的示例代码均可在 [这里](app/src/main/java/com/funny/composedatasaver/ui/ExampleComposables.kt) 查看具体实现
+以下介绍的示例代码均可在 [这里](composeApp/src/commonMain/kotlin/com/funny/data_saver/ui/ExampleComposables.kt) 查看具体实现
 
 ## 基本使用
 
 项目使用`DataSaverInterface`的实现类来保存数据，因此您需要先提供一个此类对象。
 
+### Android
 项目默认包含了使用`Preference`保存数据的实现类`DataSaverPreferences`，可如下初始化：
 
 ```kotlin
@@ -67,6 +68,17 @@ dependencies {
 val dataSaverPreferences = DataSaverPreferences(applicationContext)
 CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
 	ExampleComposable()
+}
+```
+
+### JVM Desktop
+默认包含了基于 `java.util.Properties` 的实现类 `DataSaverProperties`，您可以如下初始化：
+
+```kotlin
+// init properties
+val dataSaver = DataSaverProperties("$userHome/$projectName/$filename")
+CompositionLocalProvider(LocalDataSaver provides dataSaver){
+    ExampleComposable()
 }
 ```
 
@@ -134,7 +146,7 @@ inline fun <reified T> mutableDataSaverStateOf(
 
 ```bash
 // if you want to use mmkv
-implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-mmkv:{tag}"
+implementation "io.github.FunnySaltyFish:data-saver-mmkv:{tag}"
 implementation 'com.tencent:mmkv:1.2.14'
 ```
 
@@ -161,7 +173,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 
 ```bash
 // if you want to use DataStore
-implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-data-store-preferences:{tag}"
+implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:{tag}"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"
@@ -180,18 +192,19 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
 
 
 
-三者默认支持的类型如下所示
+四者默认支持的类型如下所示
 
-|   类型    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences |
-| :-------: | :-----------------: | :-----------: | :---------------------------: |
-|    Int    |          Y          |       Y       |               Y               |
-|  Boolean  |          Y          |       Y       |               Y               |
-|  String   |          Y          |       Y       |               Y               |
-|   Long    |          Y          |       Y       |               Y               |
-|   Float   |          Y          |       Y       |               Y               |
-|  Double   |                     |       Y       |               Y               |
-| Parceable |                     |       Y       |                               |
-| ByteArray |                     |       Y       |                               |
+|    类型     | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences | DataSaverProperties |
+|:---------:|:-------------------:|:-------------:|:-----------------------------:|:-------------------:|
+|    Int    |          Y          |       Y       |               Y               |          Y          |
+|  Boolean  |          Y          |       Y       |               Y               |          Y          |
+|  String   |          Y          |       Y       |               Y               |          Y          |
+|   Long    |          Y          |       Y       |               Y               |          Y          |
+|   Float   |          Y          |       Y       |               Y               |          Y          |
+|  Double   |                     |       Y       |               Y               |          Y          |
+| Parceable |                     |       Y       |                               |                     |
+| ByteArray |                     |       Y       |                               |                     |
+
 
 更多类型的支持请参见 [保存自定义类型](#保存自定义类型)
 
@@ -258,7 +271,7 @@ registerTypeConverters<ExampleBean>(
 
 
 
-完整例子见 [示例项目](/app/src/main/java/com/funny/composedatasaver/ExampleActivity.kt)
+完整例子见 [示例项目](composeApp/src/commonMain/kotlin/com/funny/data_saver/AppConfig.kt)
 
 ## 感知外部数据变化
 自 v1.1.6 起，框架加入了**有限的对外部数据变化感知的支持**，具体来说，就是当您在外部修改了某个key对应的值时，框架会自动感知到并更新对应的`MutableDataSaverState`，从而触发Composable的更新。
@@ -367,7 +380,7 @@ val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> = rememberDataS
 
 
 ### @Preview 支持
-项目自 v1.1.6 起支持了 @Preview。具体来说，由于 @Preview 模式下无法正常使用 `CompositionLocalProvider`，因此我额外实现了 `DataSaverInMemory`，它使用 `HashMap` 来存储数据，从而不依赖于本地存储以及 `CompositionLocalProvider`。
+项目自 v1.1.6 起支持了 @Preview。具体来说，由于 @Preview 模式下无法正常使用 `CompositionLocalProvider`，因此额外实现了 `DataSaverInMemory`，它使用 `HashMap` 来存储数据，从而不依赖于本地存储以及 `CompositionLocalProvider`。
 
 ```kotlin
 @Composable
@@ -382,7 +395,7 @@ fun getLocalDataSaverInterface() =
 
 目前，此库已在下列项目中使用：
 
-- [FunnySaltyFish/FunnyTranslation: 基于Jetpack Compose开发的翻译软件，支持多引擎、插件化~ | Jetpack Compose+MVVM+协程+Room](https://github.com/FunnySaltyFish/FunnyTranslation)
+- [译站：基于 KMP + CMP 实现的 AI 翻译软件](https://github.com/FunnySaltyFish/Transtation-KMP)
 - [Github 中搜索](https://github.com/search?q=mutableDataSaverStateOf&type=code)
 
 如果您正在使用此项目，也欢迎您告知我以补充。

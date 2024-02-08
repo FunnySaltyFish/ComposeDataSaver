@@ -1,7 +1,7 @@
 # ComposeDataSaver
 
-| [![Version](https://jitpack.io/v/FunnySaltyFish/ComposeDataSaver.svg)](https://jitpack.io/#FunnySaltyFish/CMaterialColors) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [![Maven Central](https://img.shields.io/maven-central/v/io.github.FunnySaltyFish/data-saver-core)](https://central.sonatype.com/artifact/io.github.FunnySaltyFish/data-saver-core) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ |
 
 An elegant way to do data persistence in Compose Multiplatform ( Android / JVM Desktop ).
 
@@ -31,12 +31,12 @@ You can download the demo [here](demo.apk).
 
 ## Implementation
 
-Add jitpack's url in `settings.gradle`
+Add maven central url in `settings.gradle`
 
 ```bash
 dependencyResolutionManagement {
     repositories {
-        maven { url "https://jitpack.io" }
+        mavenCentral()
     }
 }
 ```
@@ -45,16 +45,19 @@ add implementation in module's `build.gradle`
 
 ```bash
 dependencies {
-    implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver:{version}"
+    implementation "io.github.FunnySaltyFish:data-saver-core:{version}"
 }
 ```
 
+> NOTICE: the group id had been changed since v1.2.0 from `com.funny.ComposedDataSaver` to `io.github.FunnySaltyFish`
 
 ## Basic Usage
 
 This library uses classes which implements interface `DataSaverInterface` to save data，thus you need to provide an instance of it.
 
-This library includes a default implementation class using `Preference` to save data, that is `DataSaverPreferences`. You can initialize it like this:
+This library includes a default implementation class for each platform, there are:
+
+- Android: using `Preference` to save data, the class is `DataSaverPreferences`. You can initialize it like this:
 
 ```kotlin
 // init preferences
@@ -66,7 +69,17 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
 }
 ```
 
-After that, you can use `LocalDataSaver.current` to access to the instance inside  `ExampleComposable` and its children.
+- JVM Desktop: using `java.util.Properties` to save data, the class is `DataSaverProperties`. You can initialize it like this:
+
+```kotlin
+// init properties
+val dataSaver = DataSaverProperties("$userHome/$projectName/$filename")
+CompositionLocalProvider(LocalDataSaver provides dataSaver){
+    ExampleComposable()
+}
+```
+
+After that, you can use `getLocalDataSaverInterface()` to access to the instance inside  `ExampleComposable` and its children.
 
 For basic data types like String/Int/Boolean :
 
@@ -114,13 +127,13 @@ inline fun <reified T> rememberDataSaverState(
 
 
 ## Custom storage framework
-We provide the basic implementations of using [MMKV](https://github.com/Tencent/MMKV) or [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore).
+We provide the basic implementations of using [MMKV](https://github.com/Tencent/MMKV) or [DataStorePreference](https://developer.android.google.cn/jetpack/androidx/releases/datastore) on Android platform.
 
 ### MMKV
 1. Add extra implementations as below:
 ```bash
 // if you want to use mmkv
-implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-mmkv:{version}"
+implementation "io.github.FunnySaltyFish:data-saver-mmkv:{version}"
 implementation 'com.tencent:mmkv:1.2.12'
 ```
 2. Initialize it as below:
@@ -135,7 +148,6 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
     // ...
 }
 ```
-
 ---
 
 ### DataStorePreference
@@ -143,7 +155,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 1. Add extra implementations as below:
 ```bash
 // if you want to use DataStore
-implementation "com.github.FunnySaltyFish.ComposeDataSaver:data-saver-data-store-preferences:{version}"
+implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:{version}"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"
@@ -161,18 +173,37 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverDataStorePreferences){
 }
 ```
 
+The default data types that supported by these four are as follows:
+
+
+|   Type    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences | DataSaverProperties |
+|:---------:|:-------------------:|:-------------:|:-----------------------------:|:-------------------:|
+|    Int    |          Y          |       Y       |               Y               |          Y          |
+|  Boolean  |          Y          |       Y       |               Y               |          Y          |
+|  String   |          Y          |       Y       |               Y               |          Y          |
+|   Long    |          Y          |       Y       |               Y               |          Y          |
+|   Float   |          Y          |       Y       |               Y               |          Y          |
+|  Double   |                     |       Y       |               Y               |          Y          |
+| Parceable |                     |       Y       |                               |                     |
+| ByteArray |                     |       Y       |                               |                     |
+
 ---
 
 ### Others
 
-Your class just needs to implement the interface`DataSaverInterface` and override`saveData` and `readData` methods.  
-For some frameworks that support `Coroutine`, you can ovveride `saveDataAsync` to save data asynchronously.
+Your class just needs to implement the interface`DataSaverInterface` and override the required methods.
+For some frameworks that support `Coroutine`, you can override `saveDataAsync` to save data asynchronously.
 
 ```kotlin
-interface DataSaverInterface{
-    fun <T> saveData(key:String, data : T)
-    fun <T> readData(key: String, default : T) : T
-    suspend fun <T> saveDataAsync(key:String, data : T) = saveData(key, data)
+abstract class DataSaverInterface(val senseExternalDataChange: Boolean = false) {
+    abstract fun <T> saveData(key: String, data: T)
+    abstract fun <T> readData(key: String, default: T): T
+    open suspend fun <T> saveDataAsync(key: String, data: T) = saveData(key, data)
+    abstract fun remove(key: String)
+    abstract fun contains(key: String): Boolean
+
+    var externalDataChangedFlow: MutableSharedFlow<Pair<String, Any?>>? =
+        if (senseExternalDataChange) MutableSharedFlow(replay = 1) else null
 }
 ```
 
@@ -215,7 +246,7 @@ registerTypeConverters<ExampleBean>(
 By doing this, you can use `rememberDataSaverState` to save and read the entity directly. Even more, you can use `rememberDataSaverListState` to save and read the list of corresponding class's entity without any additional code.
 
 
-To check the full code, see [example](/app/src/main/java/com/funny/composedatasaver/ExampleActivity.kt)
+To check the full code, see [example](composeApp/src/commonMain/kotlin/com/funny/data_saver/AppConfig.kt)
 
 
 ## Advanced Settings
@@ -272,7 +303,7 @@ The implementaion using `DataStorePreference` supports this feature well by defu
 ## Projects using this library
 The library has been used in the following projects:
 
-- [FunnySaltyFish/FunnyTranslation: 基于Jetpack Compose开发的翻译软件，支持多引擎、插件化~ | Jetpack Compose+MVVM+协程+Room](https://github.com/FunnySaltyFish/FunnyTranslation)
+- [A translation app on Android/Desktop built by Kotlin Multiplatform + Compose Multiplatform, enjoy amazing experience with LLMs' support](https://github.com/FunnySaltyFish/Transtation-KMP)
 - [Search in Github](https://github.com/search?q=mutableDataSaverStateOf&type=code)
 
 If you are using this library in your project, please let me know and I will add it to the list.
