@@ -8,10 +8,10 @@ actual object AppConfig {
         registerAllTypeConverters()
     }
 
-    private const val filename = "data_saver.properties"
     private val userHome = System.getProperty("user.home")
     private const val projectName = "ComposeDataSaver"
 
-
-    actual val dataSaver: DataSaverInterface = DataSaverProperties("$userHome/$projectName/$filename")
+    // File Path Example(Windows): C:/Users/username/ComposeDataSaver/data_saver.properties
+    actual val dataSaver: DataSaverInterface = DataSaverProperties("$userHome/$projectName/data_saver.properties")
+        // DataSaverEncryptedProperties("$userHome/$projectName/data_saver_encrypted.properties", "FunnySaltyFish")
 }
