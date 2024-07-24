@@ -47,7 +47,7 @@ open class DataSaverPreferences(
             is String -> putString(key, data)
             is Boolean -> putBoolean(key, data)
             is Float -> putFloat(key, data)
-            else -> throw IllegalArgumentException("Unable to save $data, this type(${data!!::class.java}) cannot be saved using SharedPreferences, call [registerTypeConverters] to support it.")
+            else -> unsupportedType("save", data)
         }.apply()
     }
 
@@ -58,7 +58,7 @@ open class DataSaverPreferences(
             is Int -> getInt(key, default)
             is Boolean -> getBoolean(key, default)
             is Float -> getFloat(key, default)
-            else -> throw IllegalArgumentException("Unable to read $default, this type(${default!!::class.java}) cannot be get from Preferences, call [registerTypeConverters] to support it.")
+            else -> unsupportedType("read", default)
         }
         return res as T
     }

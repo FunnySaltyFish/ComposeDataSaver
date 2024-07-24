@@ -45,14 +45,12 @@ import com.funny.data_saver.Constant
 import com.funny.data_saver.Constant.KEY_BEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_BOOLEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_STRING_EXAMPLE
-import com.funny.data_saver.core.DataSaverConverter
 import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.core.DataSaverMutableState
 import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver.core.SavePolicy
 import com.funny.data_saver.core.getLocalDataSaverInterface
-import com.funny.data_saver.core.rememberDataSaverListState
 import com.funny.data_saver.core.rememberDataSaverState
 import com.funny.data_saver.kmp.Log
 import com.funny.data_saver.kmp.viewModel
@@ -166,7 +164,7 @@ expect fun ParcelableExample()
 
 @Composable
 private fun ListExample() {
-    var listExample by rememberDataSaverListState(
+    var listExample: List<ExampleBean> by rememberDataSaverState(
         key = "key_list_example", initialValue = listOf(
             EmptyBean.copy(label = "Name 1"),
             EmptyBean.copy(label = "Name 2"),
@@ -310,7 +308,7 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
 
         Spacer(modifier = Modifier.height(4.dp))
         val keyList = "sense_external_data_change_example_list"
-        val list by rememberDataSaverListState(
+        val list by rememberDataSaverState(
             key = keyList,
             initialValue = listOf(ExampleBean(0, "initial")),
             senseExternalDataChange = true
@@ -326,7 +324,7 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
                         val l = list + ExampleBean(list.size, "add")
                         dataSaverInterface.saveData(
                             keyList,
-                            DataSaverConverter.convertListToString(l)
+                            Json.encodeToString(l)
                         )
                     }) {
                         Text(text = "Add")
@@ -338,7 +336,7 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
                             val l = list.dropLast(1)
                             dataSaverInterface.saveData(
                                 keyList,
-                                DataSaverConverter.convertListToString(l)
+                                Json.encodeToString(l)
                             )
                         }
                     }) {

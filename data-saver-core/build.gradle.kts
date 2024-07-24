@@ -35,6 +35,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.compose.bom))
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(libs.kotlin.reflection)
         }
         desktopMain.dependencies {
 

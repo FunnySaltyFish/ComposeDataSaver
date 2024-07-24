@@ -5,8 +5,8 @@ import androidx.compose.ui.graphics.toArgb
 
 // Comes From [FunnyTranslation](https://github.com/FunnySaltyFish/FunnyTranslation)
 sealed class ThemeType(val id: Int) {
-    object StaticDefault: ThemeType(-1)
-    object DynamicNative : ThemeType(0)
+    data object StaticDefault: ThemeType(-1)
+    data object DynamicNative : ThemeType(0)
     class DynamicFromImage(val color: Color) : ThemeType(1)
     class StaticFromColor(val color: Color): ThemeType(2)
 

@@ -26,4 +26,9 @@ internal fun registerAllTypeConverters() {
         save = ThemeType.Saver,
         restore = ThemeType.Restorer
     )
+
+    DataSaverConverter.registerTypeConverters<List<ExampleBean>>(
+        save = { list -> Json.encodeToString(list) },
+        restore = { str -> Json.decodeFromString(str) }
+    )
 }

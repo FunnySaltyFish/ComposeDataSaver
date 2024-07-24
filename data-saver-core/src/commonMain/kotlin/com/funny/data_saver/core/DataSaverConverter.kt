@@ -1,14 +1,45 @@
 package com.funny.data_saver.core
 
-import com.funny.data_saver.kmp.Log
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
 
+interface ITypeConverter {
+    fun save(data: Any?): String
+    fun restore(str: String): Any?
+    fun accept(data: Any?): Boolean
+}
+
+/**
+ * Use class information to accept data, use `clazz.isInstance(data)` and extra nullable check to determine whether the data is accepted.
+ * @property type The type of the data, use [typeOf] to obtain
+ */
+abstract class ClassTypeConverter(
+    private val type: KType
+): ITypeConverter {
+    private val clazz by lazy {
+        type.classifier as KClass<*>
+    }
+
+    override fun accept(data: Any?): Boolean {
+        return (data != null && clazz.isInstance(data)) ||
+                (type.isMarkedNullable && data == null)
+    }
+
+    override fun toString(): String {
+        return "TypeConverter(type=$type)"
+    }
+}
 
 object DataSaverConverter {
-    val typeSaveConverters: MutableMap<Class<*>, (Any?) -> String> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableMapOf() }
-    val typeRestoreConverters: MutableMap<Class<*>, (String) -> Any?> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableMapOf() }
+    val typeConverters: MutableList<ITypeConverter> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableListOf() }
 
     private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
         DataSaverLogger("DataSaverConverter")
+    }
+
+    init {
+        registerDefaultTypeConverters()
     }
 
     /**
@@ -19,90 +50,117 @@ object DataSaverConverter {
      * @param save Function1<T, Any>? save your entity bean into [String]
      * @param restore Function1<Any, T>? restore your entity bean from the saved [String] value
      */
-    @Suppress("UNCHECKED_CAST")
     inline fun <reified T : Any?> registerTypeConverters(
-        noinline save: ((T) -> String)? = null,
-        noinline restore: ((String) -> T)? = null
+        noinline save: (T) -> String,
+        noinline restore: (String) -> T
     ) {
-        save?.let { typeSaveConverters[T::class.java] = it as (Any?) -> String }
-        restore?.let { typeRestoreConverters[T::class.java] = it }
-    }
+        val converter = object : ClassTypeConverter(type = typeOf<T>()) {
+            override fun save(data: Any?): String {
+                return save(data as T)
+            }
 
-    fun convertListToString(list: List<*>): String {
-        val sb = StringBuilder("[")
-        for (each in list) {
-            when (each) {
-                is List<*> -> sb.append(convertListToString(each))
-                null -> error("unable to save data: some part of list is null! ")
-                else -> run {
-                    val typeConverter = findSaver(each)
-                    typeConverter ?: unsupportedType(each)
-                    sb.append("${typeConverter(each)}${DataSaverConfig.LIST_SEPARATOR}")
-                }
+            override fun restore(str: String): Any? {
+                return restore(str)
             }
         }
-        if (sb.length > DataSaverConfig.LIST_SEPARATOR.length + 2) sb.delete(
-            sb.length - DataSaverConfig.LIST_SEPARATOR.length,
-            sb.length
-        )
-        sb.append("]")
-        return sb.toString()
+        typeConverters.add(converter)
     }
 
-    inline fun <reified T> convertStringToList(str: String, restorer: (String) -> Any?) : List<T> {
-        if (str.length < 2) error("Invalid text($str), it should be like [a${DataSaverConfig.LIST_SEPARATOR}b${DataSaverConfig.LIST_SEPARATOR}c] instead.")
-        if (str == "[]") return emptyList()
-        val s = str.substring(1, str.length - 1)
-        return try {
-            val arr = s.split(DataSaverConfig.LIST_SEPARATOR)
-            arr.map {
-                restorer(it) as T
-            }
-        } catch (e: Exception) {
-            Log.e("DataConverter", "error while parsing $str to list")
-            e.printStackTrace()
-            emptyList()
-        }
+    /**
+     * Register a type converter for some specific types
+     * @param converter ITypeConverter
+     */
+    fun registerTypeConverters(
+        vararg converter: ITypeConverter
+    ) {
+        typeConverters.addAll(converter)
     }
 
-    inline fun <reified T> findRestorer(): ((String) -> Any?)? {
-        var restorer = typeRestoreConverters[T::class.java]
-        if (restorer == null) {
-            typeRestoreConverters.keys.forEach {
-                if (it.isAssignableFrom(T::class.java)) {
-                    restorer = typeRestoreConverters[it]
-                    return restorer
-                }
+    /**
+     * Register a type converter for a specific type.
+     * @param save How to save the data into String
+     * @param restore How to restore thr data from String
+     * @param acceptCondition The condition to accept the data
+     */
+    inline fun <reified T> registerTypeConverters(
+        noinline save: (T) -> String,
+        noinline restore: (String) -> T,
+        noinline acceptCondition: (T) -> Boolean
+    ) {
+        val converter = object : ITypeConverter {
+            override fun save(data: Any?): String {
+                return save(data as T)
+            }
+
+            override fun restore(str: String): Any? {
+                return restore(str)
+            }
+
+            override fun accept(data: Any?): Boolean {
+                return acceptCondition(data as T)
             }
         }
-        return restorer
+        typeConverters.add(converter)
+    }
+
+    inline fun <reified T> findRestorer(data: T): ((String) -> Any?)? {
+        return findTypeConverter(data)?.let {
+            it::restore
+        }
     }
 
     fun <T: Any> findSaver(data: T): ((Any?) -> String)? {
-        var saver = typeSaveConverters[data::class.java]
-        if (saver == null) {
-            typeSaveConverters.keys.forEach {
-                if (it.isAssignableFrom(data::class.java)) {
-                    saver = typeSaveConverters[it]
-                    return saver
-                }
-            }
+        return typeConverters.find { it.accept(data) }?.let {
+            it::save
         }
-        return saver
     }
 
-    inline fun <reified T> restoreDataFromLocal(
-        dataSaverInterface: DataSaverInterface,
-        key: String,
-        data: T
-    ): T {
-        val restore = findRestorer<T>()
-        restore ?: unsupportedType(data, "restore")
-        return restore(dataSaverInterface.readData(key, "")) as T
+    inline fun <reified T> findTypeConverter(data: T): ITypeConverter? {
+        return typeConverters.find { it.accept(data) }
     }
 
     fun unsupportedType(data: Any?, action: String = "save"): Nothing =
         error("Unable to $action data: type of $data (class: ${if (data == null)"null" else data::class.java} is not supported, please call [registerTypeConverters] at first!")
 
+
+    private fun registerDefaultTypeConverters() {
+        // kotlin.collections.EmptyList
+        val emptyList: List<Nothing> = emptyList()
+        registerTypeConverters(object : ITypeConverter {
+            override fun save(data: Any?): String {
+                return "[]"
+            }
+
+            override fun restore(str: String): Any {
+                return emptyList
+            }
+
+            override fun accept(data: Any?): Boolean {
+                return data is List<*> && data.isEmpty()
+            }
+        })
+
+        // kotlin.collections.EmptyMap
+        val emptyMap = emptyMap<String, Any>()
+        registerTypeConverters(object : ITypeConverter {
+            override fun save(data: Any?): String {
+                return "{}"
+            }
+
+            override fun restore(str: String): Any {
+                return emptyMap
+            }
+
+            override fun accept(data: Any?): Boolean {
+                return data is Map<*, *> && data.isEmpty()
+            }
+        })
+
+        // String
+        registerTypeConverters<String>(
+            save = { it },
+            restore = { it }
+        )
+    }
 }
 

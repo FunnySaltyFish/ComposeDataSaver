@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.funny.data_saver.core.DataSaverConverter.findSaver
+import com.funny.data_saver.core.DataSaverConverter.unsupportedType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -160,32 +161,6 @@ class DataSaverMutableState<T>(
     override operator fun component2(): (T) -> Unit = ::doSetValue
 }
 
-/**
- * This function provide an elegant way to do data persistence.
- * Check the example in `README.md` to see how to use it.
- *
- * NOTE: THE VERSION WITH PARAMETER `savePolicy` IS PREFERRED.
- *
- * @param key String
- * @param default T default value if it is initialized the first time
- * @param autoSave Boolean whether to do data persistence each time you do assignment
- * @return DataSaverMutableState<T>
- */
-@Deprecated(
-    "Use another function with parameter `savePolicy` instead",
-    ReplaceWith("rememberDataSaverState(key=key, initialValue=default)")
-)
-@Composable
-inline fun <reified T> rememberDataSaverState(
-    key: String,
-    default: T,
-    autoSave: Boolean = true
-): DataSaverMutableState<T> = rememberDataSaverState(
-    key = key,
-    initialValue = default,
-    savePolicy = if (autoSave) SavePolicy.IMMEDIATELY else SavePolicy.NEVER
-)
-
 
 /**
  * This function READ AND CONVERT the saved data and return a remembered [DataSaverMutableState].
@@ -228,16 +203,11 @@ inline fun <reified T> rememberDataSaverState(
             DataSaverLogger.log("externalDataChangedFlow: $key -> $v")
             if (k == key && v != state?.value) {
                 val d = if (v != null) {
-                    try {
-                        v as T
-                    } catch (e: Exception) {
-                        if (v is String) {
-                            val restore = DataSaverConverter.findRestorer<T>()
-                            restore ?: throw e
-                            restore(v) as T
-                        } else {
-                            throw e
-                        }
+                    if (v is String) {
+                        val restore = DataSaverConverter.findRestorer<T>(initialValue) ?: unsupportedType(initialValue, "restore")
+                        restore(v) as T
+                    } else {
+                        (v as? T) ?: unsupportedType(v, "restore")
                     }
                 } else {
                     // if the value is null
@@ -294,7 +264,7 @@ inline fun <reified T> mutableDataSaverStateOf(
         if (!dataSaverInterface.contains(key)) initialValue
         else dataSaverInterface.readData(key, initialValue)
     } catch (e: Exception) {
-        val restore = DataSaverConverter.findRestorer<T>()
+        val restore = DataSaverConverter.findRestorer<T>(initialValue)
         restore ?: throw e
         runCatching {
             restore(dataSaverInterface.readData(key, "")) as T
@@ -304,6 +274,3 @@ inline fun <reified T> mutableDataSaverStateOf(
     }
     return DataSaverMutableState(dataSaverInterface, key, data, savePolicy, async, coroutineScope)
 }
-
-
-

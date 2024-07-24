@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
- * The implementation using [PreferenceDataStore] to save data. And because DataStore supports coroutine,
+ * The implementation using [DataStore] to save data. And because DataStore supports coroutine,
  * so does this.
  */
 open class DataSaverDataStorePreferences(
@@ -96,9 +96,7 @@ open class DataSaverDataStorePreferences(
                     setting[stringPreferencesKey(key)] ?: default
                 }.first() as T
             }
-            else -> {
-                throw IllegalArgumentException("Unable to read $default, this type(${default!!::class.java}) cannot be read from DataStore, call [registerTypeConverters] to support it.")
-            }
+            else -> unsupportedType(action = "read", data = default)
         }
     }
 
@@ -115,7 +113,7 @@ open class DataSaverDataStorePreferences(
                 is Float -> setting[floatPreferencesKey(key)] = value
                 is Boolean -> setting[booleanPreferencesKey(key)] = value
                 is String -> setting[stringPreferencesKey(key)] = value
-                else -> throw IllegalArgumentException("Unable to save $value, this type(${value!!::class.java}) cannot be saved using DataStore, call [registerTypeConverters] to support it.")
+                else -> unsupportedType(action = "save", data = value)
             }
         }
     }
