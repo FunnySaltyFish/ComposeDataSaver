@@ -1,6 +1,8 @@
 package com.funny.data_saver.kmp
 
-expect object Logger {
+import com.funny.data_saver.core.DataSaverConfig
+
+interface Logger {
     fun d(msg: String) : Unit
     fun d(tag: String, msg: String) : Unit
     fun d(tag: String, msg: String, throwable: Throwable) : Unit
@@ -26,4 +28,6 @@ expect object Logger {
     fun wtf(tag: String, msg: String, throwable: Throwable) : Unit
 }
 
-typealias Log = Logger
+expect object LoggerImpl: Logger
+
+val Log get() = DataSaverConfig.logger

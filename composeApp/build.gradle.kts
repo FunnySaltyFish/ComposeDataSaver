@@ -11,17 +11,15 @@ plugins {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xmulti-platform", "-Xexpect-actual-classes")
-    }
-
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.get().compilerOptions {
+                freeCompilerArgs.addAll("-Xexpect-actual-classes")
             }
         }
     }
+
+    androidTarget { }
     
     jvm("desktop")
     
