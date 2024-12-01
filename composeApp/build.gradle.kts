@@ -1,16 +1,13 @@
-import com.google.gson.internal.JavaVersion
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-//    alias(libs.plugins.kotlinMultiplatform)
-//    alias(libs.plugins.androidApplication)
-//    alias(libs.plugins.jetbrainsCompose)
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.compose")
     id("com.android.application")
     // kotlinx-serilization
     id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {

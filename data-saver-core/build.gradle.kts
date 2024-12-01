@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.compose")
     id("com.android.library")
     id("convention.publication")
+    alias(libs.plugins.compose.compiler)
 }
 
 group = libs.versions.group.get()

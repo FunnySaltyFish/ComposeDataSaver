@@ -1,5 +1,5 @@
 [versions]
-agp = "8.2.2"
+agp = "8.6.0"
 group = "io.github.FunnySaltyFish"
 project = "1.2.1"
 android-compileSdk = "34"
@@ -12,16 +12,16 @@ androidx-core-ktx = "1.12.0"
 androidx-espresso-core = "3.5.1"
 androidx-material = "1.11.0"
 androidx-test-junit = "1.1.5"
-compose = "1.6.0"
-compose-bom = "2024.01.00"
+compose = "1.7.0"
+compose-bom = "2024.11.00"
 compose-compiler = "1.5.7"
 compose-plugin = "1.5.11"
 junit = "4.13.2"
-kotlin = "1.9.21"
+kotlin = "2.0.0"
 kotlinx-serialization = "1.6.1"
 kotlinx-coroutines = "1.7.3"
 datastore = "1.0.0"
-precompose = "1.5.10"
+precompose = "1.6.1"
 
 [libraries]
 #org.jetbrains.kotlin:kotlin-stdlib-jdk8
@@ -59,6 +59,7 @@ precompose-viewmodel = { module = "moe.tlaster:precompose-viewmodel", version.re
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

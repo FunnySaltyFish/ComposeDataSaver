@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     id("convention.publication")
+    alias(libs.plugins.compose.compiler)
 }
 
 group = libs.versions.group.get()
@@ -29,13 +30,6 @@ android {
         jvmTarget = "1.8"
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
-    }
     namespace = "com.funny.data_saver_mmkv"
 }
 
