@@ -7,6 +7,7 @@ import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver.ui.ExampleComposable
 import com.funny.data_saver.ui.theme.FunnyTheme
 import kotlinx.serialization.ExperimentalSerializationApi
+import moe.tlaster.precompose.ProvidePreComposeLocals
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
@@ -15,9 +16,11 @@ fun main() {
             onCloseRequest = ::exitApplication,
             title = "Compose Data Saver"
         ) {
-            FunnyTheme {
-                CompositionLocalProvider(LocalDataSaver provides AppConfig.dataSaver){
-                    ExampleComposable()
+            ProvidePreComposeLocals {
+                FunnyTheme {
+                    CompositionLocalProvider(LocalDataSaver provides AppConfig.dataSaver) {
+                        ExampleComposable()
+                    }
                 }
             }
         }

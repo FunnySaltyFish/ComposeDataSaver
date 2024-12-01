@@ -1,8 +1,11 @@
 package com.funny.data_saver.core
 
+import com.funny.data_saver.kmp.Log
+import java.io.FileInputStream
 import java.io.FileNotFoundException
-import java.io.FileReader
-import java.io.FileWriter
+import java.io.FileOutputStream
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.security.MessageDigest
 import java.util.Base64
 import java.util.Properties
@@ -11,13 +14,18 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * Use [Properties] to save data in a properties file with encryption. The algorithm is AES/CBC/NoPadding.
+ * Use [Properties] to save data in a properties file with encryption. The algorithm is AES/CBC/PKCS5Padding.
  *
  * @property filePath String The file path to save the data file. 数据文件的保存路径。
  * @param encryptionKey String The key to encrypt the data, can be any string. 用于加密数据的密钥，可以是任意字符串（实际使用的密钥为该字符串的 SHA-256 哈希值，且仅用其前 16 位产生 iv）
+ * @param fileEncoding String The encoding of the data file, default to UTF-8. 数据文件的编码，默认为 UTF-8。
  */
 
-open class DataSaverEncryptedProperties(private val filePath: String, private val encryptionKey: String) : DataSaverInterface() {
+open class DataSaverEncryptedProperties(
+    private val filePath: String,
+    private val encryptionKey: String,
+    private val fileEncoding: String = "UTF-8"
+) : DataSaverInterface() {
     private val properties = Properties()
     private val hashedKey = hashKey(encryptionKey)
     private val encryptCipher by lazy { createCipher(Cipher.ENCRYPT_MODE) }
@@ -25,26 +33,26 @@ open class DataSaverEncryptedProperties(private val filePath: String, private va
 
     init {
         try {
-            createFile(filePath)
-            FileReader(filePath).use { reader ->
+            InputStreamReader(FileInputStream(filePath), fileEncoding).use { reader ->
                 properties.load(reader)
             }
         } catch (e: FileNotFoundException) {
-            // Handle file not found exception
+            // 处理文件不存在等异常
+            createFile(filePath)
         } catch (e: Exception) {
-            // Handle other exceptions
-            e.printStackTrace()
+            Log.e(TAG, "Error loading properties: ${e.message}", e)
         }
     }
 
     private fun saveProperties() {
         try {
-            FileWriter(filePath).use { writer ->
+            OutputStreamWriter(FileOutputStream(filePath), fileEncoding).use { writer ->
                 properties.store(writer, null)
             }
+        } catch (e: FileNotFoundException) {
+            Log.e(TAG, "File not found: $filePath")
         } catch (e: Exception) {
-            // Handle file write exception
-            e.printStackTrace()
+            Log.e(TAG, "Error saving properties: ${e.message}", e)
         }
     }
 
@@ -98,5 +106,9 @@ open class DataSaverEncryptedProperties(private val filePath: String, private va
 
     override fun contains(key: String): Boolean {
         return properties.containsKey(key)
+    }
+
+    companion object {
+        private const val TAG = "DataSaverEncryptedProperties"
     }
 }
