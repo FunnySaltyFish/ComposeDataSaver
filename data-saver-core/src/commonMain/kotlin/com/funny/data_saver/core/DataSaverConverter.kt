@@ -1,5 +1,6 @@
 package com.funny.data_saver.core
 
+import com.funny.data_saver.kmp.Log
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -109,14 +110,16 @@ object DataSaverConverter {
         }
     }
 
-    fun <T: Any> findSaver(data: T): ((Any?) -> String)? {
-        return typeConverters.find { it.accept(data) }?.let {
+    fun <T> findSaver(data: T): ((Any?) -> String)? {
+        return typeConverters.findLast { it.accept(data) }?.let {
             it::save
         }
     }
 
     inline fun <reified T> findTypeConverter(data: T): ITypeConverter? {
-        return typeConverters.find { it.accept(data) }
+        return typeConverters.findLast { it.accept(data) }.also {
+            Log.d("DataSaverConverter", "findTypeConverter for data($data): $it")
+        }
     }
 
     fun unsupportedType(data: Any?, action: String = "save"): Nothing =
@@ -124,38 +127,6 @@ object DataSaverConverter {
 
 
     private fun registerDefaultTypeConverters() {
-        // kotlin.collections.EmptyList
-        val emptyList: List<Nothing> = emptyList()
-        registerTypeConverters(object : ITypeConverter {
-            override fun save(data: Any?): String {
-                return "[]"
-            }
-
-            override fun restore(str: String): Any {
-                return emptyList
-            }
-
-            override fun accept(data: Any?): Boolean {
-                return data is List<*> && data.isEmpty()
-            }
-        })
-
-        // kotlin.collections.EmptyMap
-        val emptyMap = emptyMap<String, Any>()
-        registerTypeConverters(object : ITypeConverter {
-            override fun save(data: Any?): String {
-                return "{}"
-            }
-
-            override fun restore(str: String): Any {
-                return emptyMap
-            }
-
-            override fun accept(data: Any?): Boolean {
-                return data is Map<*, *> && data.isEmpty()
-            }
-        })
-
         // String
         registerTypeConverters<String>(
             save = { it },
