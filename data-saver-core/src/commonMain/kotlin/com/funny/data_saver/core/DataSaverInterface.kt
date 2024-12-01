@@ -89,7 +89,7 @@ open class DataSaverInMemory(senseExternalDataChange: Boolean = false) : DataSav
  * You can call `LocalDataSaver.current` inside a [androidx.compose.runtime.Composable] to
  * get the instance you've provided. You can call `readData` and `saveData` then.
  */
-var LocalDataSaver: ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
+val LocalDataSaver: ProvidableCompositionLocal<DataSaverInterface> = staticCompositionLocalOf {
     DefaultDataSaverInMemory
 }
 
