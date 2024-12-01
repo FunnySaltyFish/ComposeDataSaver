@@ -190,6 +190,23 @@ registerTypeConverters<ExampleBean>(
 	save = { bean -> Json.encodeToString(bean) },
 	restore = { str -> Json.decodeFromString(str) }
 )
+
+// 或者，如果你只需要对某个 state 编写转换器，可以直接传入 `typeConverter` 参数
+// 此参数如有，则其优先级高于 `registerTypeConverters` 方法注册的全局转换器
+var array by rememberDataSaverState(
+  "custom_type_converter_example",
+  intArrayOf(1, 2, 3, 4, 5),
+  // 参数类型为 ITypeConverter，这里的 ClassTypeConverter 是基于 type 类型 accept 的子类
+  typeConverter = object : ClassTypeConverter(type = typeOf<IntArray>()) {
+    override fun save(data: Any?): String {
+      return (data as IntArray).joinToString(",")
+    }
+
+    override fun restore(str: String): Any {
+      return str.split(",").map { it.toInt() }.toIntArray()
+    }
+  }
+)
 ```
 
 如果您需要存储可空变量，请使用 `registerTypeConverters<ExampleBean?>`。
@@ -213,9 +230,8 @@ inline fun <reified T> registerTypeConverters(
 > **注意：**
 >
 > 1. registerTypeConverters 请在初始化时调用，确保早于使用 `rememberDataSaverState("key", ExampleBean())` 之前
-> 2. 多个类型转换器会按照注册顺序依次尝试，直到找到合适的转换器。因此，如果您注册了多个相同类型的转换器，框架会使用第一个注册的转换器。
-> 3. 您可以通过 `DataSaverConverters.typeConverters` 获取到注册的全部转换器列表，初始会有默认的一些，如对 `String`、`emptyList`、`emptyMap` 的支持
-
+> 2. 多个类型转换器会按照注册顺序反向依次尝试，直到找到合适的转换器。因此，如果您注册了多个相同类型的转换器，框架会使用**最后一个符合条件的**转换器。
+> 3. 您可以通过 `DataSaverConverters.typeConverters` 获取到注册的全部转换器列表，初始会有默认的一些，如对 `String` 的支持
 
 
 ## 在 Composable 函数外使用

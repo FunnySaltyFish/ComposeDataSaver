@@ -183,6 +183,23 @@ registerTypeConverters<ExampleBean>(
 	save = { bean -> Json.encodeToString(bean) },
     restore = { str -> Json.decodeFromString(str) }
 )
+
+// If you only need to convert a specific state, you can pass the converter directly to the `rememberDataSaverState` function
+// The priority of the converter will be higher than the global converter registered by `registerTypeConverters`
+var array by rememberDataSaverState(
+  "custom_type_converter_example",
+  intArrayOf(1, 2, 3, 4, 5),
+  // the parameter type is ITypeConverter, the ClassTypeConverter is a subclass of type accepting by type
+  typeConverter = object : ClassTypeConverter(type = typeOf<IntArray>()) {
+    override fun save(data: Any?): String {
+      return (data as IntArray).joinToString(",")
+    }
+
+    override fun restore(str: String): Any {
+      return str.split(",").map { it.toInt() }.toIntArray()
+    }
+  }
+)
 ```
 
 If you need to store nullable variables, please use `registerTypeConverters<ExampleBean?>`.
@@ -206,7 +223,7 @@ The framework will call the corresponding `save` and `restore` methods to conver
 
 > 1. Please call `registerTypeConverters` during initialization to ensure it is called before using `rememberDataSaverState("key", ExampleBean())`.
 > 2. Multiple type converters will be tried in the order of registration until a suitable converter is found. Therefore, if you register multiple converters of the same type, the framework will use the first registered converter.
-> 3. You can access the list of all registered converters through `DataSaverConverters.typeConverters`. Some default converters are initially provided, such as support for `String`, `emptyList`, and `emptyMap`.
+> 3. You can access the list of all registered converters through `DataSaverConverters.typeConverters`. Some default converters are initially provided, such as support for `String`
 
 ## Using Outside of Composable Functions
 
