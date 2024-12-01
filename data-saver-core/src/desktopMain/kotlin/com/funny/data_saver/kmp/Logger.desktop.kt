@@ -1,17 +1,19 @@
 package com.funny.data_saver.kmp
 
-enum class LogLevel {
-    VERBOSE,
-    DEBUG,
-    INFO,
-    WARNING,
-    ERROR,
-    WTF
+// 加颜色
+enum class LogLevel(val color: String) {
+    VERBOSE("\u001B[34m"),
+    DEBUG("\u001B[36m"),
+    INFO("\u001B[32m"),
+    WARNING("\u001B[33m"),
+    ERROR("\u001B[31m"),
+    WTF("\u001B[31m");
 }
 
 actual object LoggerImpl: Logger {
     private fun log(level: LogLevel, tag: String = "DefaultLog", msg: String = "", throwable: Throwable? = null) {
-        println("[${level.name}] $tag: $msg")
+        // println("[${level.name}] $tag: $msg")
+        println("${level.color} [${level.name}] $tag: $msg \u001B[0m")
         throwable?.printStackTrace()
     }
 
