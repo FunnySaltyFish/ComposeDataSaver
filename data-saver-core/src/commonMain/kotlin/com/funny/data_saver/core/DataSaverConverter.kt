@@ -1,6 +1,5 @@
 package com.funny.data_saver.core
 
-import com.funny.data_saver.kmp.Log
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -28,14 +27,15 @@ abstract class ClassTypeConverter(
     }
 
     override fun toString(): String {
-        return "TypeConverter(type=$type)"
+        return "ClassTypeConverter(type=$type)"
     }
 }
 
 object DataSaverConverter {
     val typeConverters: MutableList<ITypeConverter> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableListOf() }
 
-    private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    @PublishedApi
+    internal val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
         DataSaverLogger("DataSaverConverter")
     }
 
@@ -111,14 +111,16 @@ object DataSaverConverter {
     }
 
     fun <T> findSaver(data: T): ((Any?) -> String)? {
-        return typeConverters.findLast { it.accept(data) }?.let {
+        return typeConverters.findLast { it.accept(data) }?.also {
+            logger.d("findSaver for data($data): $it")
+        }?.let {
             it::save
         }
     }
 
     inline fun <reified T> findTypeConverter(data: T): ITypeConverter? {
         return typeConverters.findLast { it.accept(data) }.also {
-            Log.d("DataSaverConverter", "findTypeConverter for data($data): $it")
+            logger.d("findTypeConverter for data($data): $it")
         }
     }
 

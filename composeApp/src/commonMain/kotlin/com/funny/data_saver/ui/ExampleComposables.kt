@@ -45,6 +45,7 @@ import com.funny.data_saver.Constant
 import com.funny.data_saver.Constant.KEY_BEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_BOOLEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_STRING_EXAMPLE
+import com.funny.data_saver.core.ClassTypeConverter
 import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.core.DataSaverMutableState
@@ -64,6 +65,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.tlaster.precompose.navigation.BackHandler
 import kotlin.random.Random
+import kotlin.reflect.typeOf
 
 /**
  * Example usage of this library
@@ -148,6 +150,8 @@ fun ExampleComposable() {
         NullableExample()
 
         SenseExternalDataChangeExample()
+
+        CustomTypeConverterExample()
 
         SaveWhenDisposedExample()
 
@@ -346,6 +350,32 @@ private fun ColumnScope.SenseExternalDataChangeExample() {
             }
         }
 
+    }
+}
+
+@Composable
+private fun CustomTypeConverterExample() {
+    Heading(text = "Custom Type Converter")
+    var array by rememberDataSaverState(
+        "custom_type_converter_example",
+        intArrayOf(1, 2, 3, 4, 5),
+        typeConverter = object : ClassTypeConverter(type = typeOf<IntArray>()) {
+            override fun save(data: Any?): String {
+                return (data as IntArray).joinToString(",")
+            }
+
+            override fun restore(str: String): Any {
+                return str.split(",").map { it.toInt() }.toIntArray()
+            }
+        }
+    )
+    Text(text = array.joinToString(", ", prefix = "[", postfix = "]"))
+    Button(onClick = {
+        array = IntArray(5) {
+            Random.nextInt()
+        }
+    }) {
+        Text("Randomly Change")
     }
 }
 
