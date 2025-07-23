@@ -78,14 +78,14 @@ class DataSaverMutableState<T>(
         val value = value!!
         if (async) {
             job?.cancel()
-            job = scope.launch {
+            job = scope.launch(Dispatchers.IO) {
                 val typeConverter = typeConverter?.asSaver(value) ?: findSaver(value)
                 if (typeConverter != null) {
                     val convertedData = typeConverter(value)
-                    log("saveConvertedData(async: $async): $key -> $value(as $convertedData)")
+                    log("saveConvertedData(async: true): $key -> $value(as $convertedData)")
                     dataSaverInterface.saveDataAsync(key, convertedData)
                 } else {
-                    log("saveData(async: $async): $key -> $value")
+                    log("saveData(async: true): $key -> $value")
                     dataSaverInterface.saveDataAsync(key, value)
                 }
             }
@@ -93,10 +93,10 @@ class DataSaverMutableState<T>(
             val typeConverter = typeConverter?.asSaver(value) ?: findSaver(value)
             if (typeConverter != null) {
                 val convertedData = typeConverter(value)
-                log("saveConvertedData(async: $async): $key -> $value(as $convertedData)")
+                log("saveConvertedData(async: false): $key -> $value(as $convertedData)")
                 dataSaverInterface.saveData(key, convertedData)
             } else {
-                log("saveData(async: $async): $key -> $value")
+                log("saveData(async: false): $key -> $value")
                 dataSaverInterface.saveData(key, value)
             }
         }
@@ -132,7 +132,7 @@ class DataSaverMutableState<T>(
 
 
     companion object {
-        const val TAG = "DataSaverState"
+        private const val TAG = "DataSaverState"
 
         private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
             DataSaverLogger(TAG)

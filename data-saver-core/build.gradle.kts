@@ -39,6 +39,9 @@ kotlin {
         desktopMain.dependencies {
 
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
 
