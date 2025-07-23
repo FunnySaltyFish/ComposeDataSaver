@@ -1,10 +1,10 @@
 [versions]
-agp = "8.6.0"
+agp = "8.11.1"
 group = "io.github.FunnySaltyFish"
 project = "1.2.2"
-android-compileSdk = "34"
+android-compileSdk = "36"
 android-minSdk = "24"
-android-targetSdk = "34"
+android-targetSdk = "36"
 androidx-activityCompose = "1.8.2"
 androidx-appcompat = "1.6.1"
 androidx-constraintlayout = "2.1.4"
@@ -12,13 +12,11 @@ androidx-core-ktx = "1.12.0"
 androidx-espresso-core = "3.5.1"
 androidx-material = "1.11.0"
 androidx-test-junit = "1.1.5"
-compose = "1.7.0"
-compose-bom = "2024.11.00"
-compose-compiler = "1.5.7"
-compose-plugin = "1.5.11"
+compose = "1.8.2"
+compose-bom = "2025.07.00"
 junit = "4.13.2"
-kotlin = "2.0.0"
-kotlinx-serialization = "1.6.1"
+kotlin = "2.2.0"
+kotlinx-serialization = "1.9.0"
 kotlinx-coroutines = "1.7.3"
 datastore = "1.0.0"
 precompose = "1.6.1"
@@ -49,7 +47,7 @@ compose-runtime = { module = "androidx.compose.runtime:runtime" }
 
 # thrid party
 # mmkv
-mmkv = { group = "com.tencent", name = "mmkv", version = "1.2.14" }
+mmkv = { group = "com.tencent", name = "mmkv", version = "2.2.2" }
 # data store
 datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
