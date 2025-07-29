@@ -1,0 +1,13 @@
+language = Objective-C
+---
+#import <Foundation/Foundation.h>
+
+// from https://github.com/splendo/kaluga/blob/8845843eb911f8064e041ee2bf90a15630962da4/base/src/nativeInterop/cinterop/objectObserver.def
+
+@protocol NSObjectObserver
+@required
+- (void)observeValueForKeyPath:(NSString *)keyPath
+    ofObject:(id)object
+    change:(NSDictionary<NSKeyValueChangeKey, id> *)change
+    context:(void *)context;
+@end;

@@ -1,3 +1,9 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+
+
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.compose")
@@ -23,9 +29,47 @@ kotlin {
     }
 
     jvm("desktop")
+    
+    // 添加 iOS 目标
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "DataSaverCore"
+            isStatic = true
+        }
+        iosTarget.setUpiOSObserver()
+    }
+
+    // 添加 WASM 目标
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        outputModuleName.set("composeDataSaver")
+        browser {
+            val rootDirPath = project.rootDir.path
+            val projectDirPath = project.projectDir.path
+            commonWebpackConfig {
+                outputFileName = "composeDataSaverCore.js"
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    static = (static ?: mutableListOf()).apply {
+                        // Serve sources to debug inside browser
+                        add(rootDirPath)
+                        add(projectDirPath)
+                    }
+                }
+            }
+        }
+        binaries.executable()
+    }
 
     sourceSets {
         val desktopMain by getting
+        val wasmJsMain by getting
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
 
         androidMain.dependencies {
 
@@ -35,9 +79,23 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(libs.kotlin.reflection)
+            implementation(libs.kotlinx.coroutines.core)
         }
         desktopMain.dependencies {
 
+        }
+
+        // 创建 iOS 公共源码集
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+        }
+
+        // WASM 平台依赖
+        wasmJsMain.dependencies {
+            
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -87,4 +145,30 @@ afterEvaluate {
             this.dependsOn(signTask)
         }
     }
+}
+
+// https://github.com/KevinnZou/compose-webview-multiplatform/blob/b876c0934c0bf24b30789e151f5acae923f22465/webview/build.gradle.kts
+fun org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget.setUpiOSObserver() {
+    // https://juejin.cn/post/7292298037203484726
+    // 可通过 ./gradlew :data-saver-core:compileKotlinIosX64 生成产物，生成的产物可用如下命令查找
+    // find data-saver-core/build/classes/kotlin/iosX64/main/cinterop/data-saver-core-cinterop-observer/default -type f
+    compilations.getByName("main") {
+        cinterops {
+            val observer by creating {
+                defFile(project.file("src/nativeInterop/cinterop/objectObserver.def"))
+                compilerOpts("-Isrc/nativeInterop/cinterop")
+                includeDirs {
+                    allHeaders("src/nativeInterop/cinterop")
+                }
+                packageName = "com.funny.data_saver.core"
+            }
+        }
+    }
+
+
+//    compilations.getByName("main") {
+//        cinterops.create("observer") {
+//            compilerOpts("-F $path")
+//        }
+//    }
 }

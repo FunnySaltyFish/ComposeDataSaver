@@ -53,6 +53,7 @@ import com.funny.data_saver.core.LocalDataSaver
 import com.funny.data_saver.core.SavePolicy
 import com.funny.data_saver.core.getLocalDataSaverInterface
 import com.funny.data_saver.core.rememberDataSaverState
+import com.funny.data_saver.kmp.IO
 import com.funny.data_saver.kmp.Log
 import com.funny.data_saver.kmp.viewModel
 import kotlinx.coroutines.CoroutineScope
@@ -61,7 +62,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import moe.tlaster.precompose.navigation.BackHandler
 import kotlin.random.Random
@@ -393,15 +393,15 @@ private fun CustomSealedClassExample() {
     ) {
         Text(
             modifier = Modifier.semantics { heading() },
-            text = "主题/Theme",
+            text = "Theme",
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold
         )
         Spacer(modifier = Modifier.height(12.dp))
-        RadioTile(text = "默认", selected = themeType == ThemeType.StaticDefault) {
+        RadioTile(text = "Default", selected = themeType == ThemeType.StaticDefault) {
             themeType = ThemeType.StaticDefault
         }
-        RadioTile(text = "动态取色", selected = themeType == ThemeType.DynamicNative) {
+        RadioTile(text = "Dynamic", selected = themeType == ThemeType.DynamicNative) {
             themeType = ThemeType.DynamicNative
         }
     }
@@ -410,7 +410,7 @@ private fun CustomSealedClassExample() {
 @Composable
 private fun CustomCoroutineScopeAndViewModelSample() {
     Heading(text = "Use custom CoroutineScope and ViewModel")
-    val vm: MainViewModel = viewModel()
+    val vm: MainViewModel = viewModel(MainViewModel::class) { MainViewModel() }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         OutlinedTextField(value = vm.username, onValueChange = { vm.username = it }, label = {
             Text(text = "Username")

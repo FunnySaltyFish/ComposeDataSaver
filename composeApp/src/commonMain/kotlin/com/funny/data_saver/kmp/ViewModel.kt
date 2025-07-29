@@ -9,13 +9,6 @@ import moe.tlaster.precompose.stateholder.StateHolder
 import moe.tlaster.precompose.viewmodel.ViewModel
 import kotlin.reflect.KClass
 
-// 为了方便的使用 PreCompose 提供的 ViewModel
-@Composable
-inline fun <reified T: ViewModel> viewModel(): T {
-    return viewModel(modelClass = T::class) {
-        T::class.java.getConstructor().newInstance()
-    }
-}
 
 /**
  * Returns a [ViewModel] instance that is scoped to the given [StateHolder].

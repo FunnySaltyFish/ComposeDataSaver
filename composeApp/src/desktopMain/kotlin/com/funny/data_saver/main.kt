@@ -1,11 +1,8 @@
 package com.funny.data_saver
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.funny.data_saver.core.LocalDataSaver
-import com.funny.data_saver.ui.ExampleComposable
-import com.funny.data_saver.ui.theme.FunnyTheme
+import com.funny.data_saver.ui.App
 import kotlinx.serialization.ExperimentalSerializationApi
 import moe.tlaster.precompose.ProvidePreComposeLocals
 
@@ -17,11 +14,7 @@ fun main() {
             title = "Compose Data Saver"
         ) {
             ProvidePreComposeLocals {
-                FunnyTheme {
-                    CompositionLocalProvider(LocalDataSaver provides AppConfig.dataSaver) {
-                        ExampleComposable()
-                    }
-                }
+                App()
             }
         }
     }

@@ -125,7 +125,7 @@ object DataSaverConverter {
     }
 
     fun unsupportedType(data: Any?, action: String = "save"): Nothing =
-        error("Unable to $action data: type of $data (class: ${if (data == null)"null" else data::class.java} is not supported, please call [registerTypeConverters] at first!")
+        error("Unable to $action data: type of $data (class: ${if (data == null) "null" else data::class} is not supported, please call [registerTypeConverters] at first!")
 
 
     private fun registerDefaultTypeConverters() {
