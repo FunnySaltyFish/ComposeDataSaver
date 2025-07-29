@@ -50,6 +50,10 @@ class DataSaverProperties(
     }
 
     override fun <T> saveData(key: String, data: T) {
+        if (data == null) {
+            remove(key)
+            return
+        }
         properties[key] = data.toString()
         saveProperties()
     }

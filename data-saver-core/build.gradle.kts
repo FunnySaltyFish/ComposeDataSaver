@@ -97,8 +97,51 @@ kotlin {
         wasmJsMain.dependencies {
             
         }
+
+        val commonTest by getting
+        // 创建 iOS 测试源码集
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+        val iosX64Test by getting {
+            dependsOn(iosTest)
+        }
+        val iosArm64Test by getting {
+            dependsOn(iosTest)
+        }
+        val iosSimulatorArm64Test by getting {
+            dependsOn(iosTest)
+        }
+        
+        // 测试依赖配置
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+        
+        // iOS 测试依赖
+        iosTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+        
+        // Android 测试依赖
+        val androidInstrumentedTest by getting {
+            dependsOn(commonTest)
+            dependencies {
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.espresso.core)
+            }
+        }
+
+        // Desktop 测试依赖
+        val desktopTest by getting {
+            dependsOn(commonTest)
+        }
+
+        // WASM 测试依赖
+        val wasmJsTest by getting {
+            dependsOn(commonTest)
         }
     }
 }
