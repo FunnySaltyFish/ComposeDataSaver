@@ -245,8 +245,8 @@ open class DataSaverNSUserDefaults(
     fun getObservedKeys(): Set<String> = observedKeys.toSet()
 
     /**
-     * Save a URL value
-     * 保存 URL 值
+     * Save a URL value. **NOTE:** Due to RFC-2396, the URL can be a relative url, so even some invalid url can be saved. (e.g. "not-a-valid-url")
+     * 保存 URL 值。**注意：** 由于 RFC-2396，URL 可以是相对 URL，因此即使某些无效 URL 也可以保存。（例如 "not-a-valid-url"）
      */
     fun saveURL(key: String, url: String) {
         autorelease {
