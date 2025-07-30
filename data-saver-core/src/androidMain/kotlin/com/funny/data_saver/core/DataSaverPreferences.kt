@@ -18,6 +18,16 @@ open class DataSaverPreferences(
         senseExternalDataChange
     )
 
+    constructor(
+        context: Context,
+        name: String,
+        mode: Int = Context.MODE_PRIVATE,
+        senseExternalDataChange: Boolean = false
+    ) : this(
+        context.getSharedPreferences(name, mode),
+        senseExternalDataChange
+    )
+
     private val logger by lazy { DataSaverLogger("DataSaverPreferences") }
     private val onSharedPreferenceChangeListener by lazy {
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
@@ -41,9 +51,8 @@ open class DataSaverPreferences(
                 this@DataSaverPreferences.remove(key)
                 return@with
             }
-
-            is Long -> putLong(key, data)
             is Int -> putInt(key, data)
+            is Long -> putLong(key, data)
             is String -> putString(key, data)
             is Boolean -> putBoolean(key, data)
             is Float -> putFloat(key, data)
@@ -53,9 +62,9 @@ open class DataSaverPreferences(
 
     override fun <T> readData(key: String, default: T): T = with(preference) {
         val res: Any = when (default) {
-            is Long -> getLong(key, default)
-            is String -> this.getString(key, default)!!
             is Int -> getInt(key, default)
+            is Long -> getLong(key, default)
+            is String -> getString(key, default)!!
             is Boolean -> getBoolean(key, default)
             is Float -> getFloat(key, default)
             else -> unsupportedType("read", default)

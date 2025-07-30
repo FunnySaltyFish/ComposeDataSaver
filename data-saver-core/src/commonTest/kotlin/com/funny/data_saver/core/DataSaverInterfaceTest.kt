@@ -80,9 +80,9 @@ abstract class DataSaverInterfaceTest {
         
         assertEquals(value, result, 0.001f)
     }
-    
+
     @Test
-    fun testSaveAndReadDouble() {
+    open fun testSaveAndReadDouble() {
         val key = "test_double"
         val value = 3.141592653589793
         val default = 0.0

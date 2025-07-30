@@ -13,6 +13,20 @@ Elegantly accomplish data persistence in Compose Multiplatform (Android/JVM Desk
 var booleanExample by rememberDataSaverState("KEY_BOOLEAN_EXAMPLE", false)
 // Direct assignment completes persistence
 booleanExample = true
+
+// Or in ViewModel
+class MyViewModel: ViewModel() {
+    // When storing an int value and the default value is 0, we suggest you marking the explicit type of the variable as `Int` to avoid being treated as `Long` by default.
+    var intExample by mutableDataSaverStateOf<Int>(
+        dataSaverInterface = AppConfig.dataSaver,
+        key = "KEY_INT_EXAMPLE",
+        initialValue = 0
+    )
+
+    fun increment() {
+        intExample++ // The data will be automatically saved when the value changes
+    }
+}
 ```
 
 - :tada: Concise: Writing style similar to native Compose functions

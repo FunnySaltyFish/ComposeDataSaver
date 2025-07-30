@@ -14,6 +14,20 @@
 var booleanExample by rememberDataSaverState("KEY_BOOLEAN_EXAMPLE", false)
 // 直接赋值即可完成持久化
 booleanExample = true
+
+// 或者在 ViewModel 中
+class MyViewModel: ViewModel() {
+    // 当存储一个 int 值且默认值为 0 时，我们建议您显式地标记变量的类型为 `Int` 以避免被默认视为 `Long`
+    var intExample by mutableDataSaverStateOf<Int>(
+        dataSaverInterface = AppConfig.dataSaver,
+        key = "KEY_INT_EXAMPLE",
+        initialValue = 0
+    )
+
+    fun increment() {
+        intExample++ // 当值变化时，数据会自动保存
+    }
+}
 ```
 
 - :tada: 简洁：近似原生 Compose 函数的写法
