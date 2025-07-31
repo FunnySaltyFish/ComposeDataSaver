@@ -54,15 +54,15 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # 手动触发时，从 gradle/libs.versions.toml 读取版本号
             VERSION=$(python -c "
-import re
-with open('gradle/libs.versions.toml', 'r') as f:
-    content = f.read()
-    match = re.search(r'project\s*=\s*\"([\d\.]+)\"', content)
-    if match:
-        print('v' + match.group(1))
-    else:
-        print('v1.0.0')
-")
+            import re
+            with open('gradle/libs.versions.toml', 'r') as f:
+                content = f.read()
+                match = re.search(r'project\s*=\s*\"([\d\.]+)\"', content)
+                if match:
+                    print('v' + match.group(1))
+                else:
+                    print('v1.0.0')
+            ")
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "🔧 手动运行，从配置文件读取版本: $VERSION"
           else
