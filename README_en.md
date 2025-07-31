@@ -2,10 +2,12 @@
 
 | [![Maven Central](https://img.shields.io/maven-central/v/io.github.FunnySaltyFish/data-saver-core)](https://central.sonatype.com/artifact/io.github.FunnySaltyFish/data-saver-core) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white) | ![JVM](https://img.shields.io/badge/JVM-ED8B00?logo=openjdk&logoColor=white) |
+| ![iOS](https://img.shields.io/badge/iOS-000000?logo=ios&logoColor=white) | ![WASM](https://img.shields.io/badge/WASM-654FF0?logo=webassembly&logoColor=white) |
 
 > The English README is translated from the Chinese version by [Transtation](https://github.com/FunnySaltyFish/Transtation-KMP). It is an powerful translation app which leverages the power of Large Language Models to do translation, developed by me as well. It is also an **Open Source Compose Multiplatform Application, and uses this library to save data**. If you're looking for a complete project, you can go there.
 
-Elegantly accomplish data persistence in Compose Multiplatform (Android/JVM Desktop)
+Elegantly accomplish data persistence in Compose Multiplatform (Android/JVM Desktop/iOS/WASM)
 
 ```kotlin
 // booleanExample is initialized with false
@@ -152,19 +154,69 @@ CompositionLocalProvider(LocalDataSaver provides dataSaver){
 
 If you need encrypted storage, you can use the implementation of `DataSaverEncryptedProperties`. It encrypts each value based on the AES algorithm, and you need to provide a key.
 
+### iOS
+
+The iOS platform includes a default implementation class based on `NSUserDefaults` called `DataSaverNSUserDefaults`, which provides enhanced data type support and external change monitoring capabilities. You can initialize it as follows:
+
+```kotlin
+// Use the default NSUserDefaults instance
+val dataSaver = DefaultDataSaverNSUserDefaults
+CompositionLocalProvider(LocalDataSaver provides dataSaver){
+    ExampleComposable()
+}
+
+// Or custom configuration
+val customDataSaver = DataSaverNSUserDefaults(
+    userDefaults = NSUserDefaults.standardUserDefaults,
+    senseExternalDataChange = true // Enable external change monitoring
+)
+```
+
+The iOS implementation supports the following additional features:
+- **Rich data types**: In addition to basic types, it also supports `ByteArray`, `List(Int/String/Boolean)`, `Map(String, Int/String/Boolean)`, `NSDate`, URL, etc.
+- **KVO change monitoring**: Can monitor external modifications to NSUserDefaults
+- **Memory management optimization**: Uses `autoreleasepool` for memory management
+
+### WASM
+
+The WASM platform implements data persistence based on the browser's `localStorage`, suitable for Web applications. You can initialize it as follows:
+
+```kotlin
+// Use default configuration
+val dataSaver = DefaultDataSaverLocalStorage
+CompositionLocalProvider(LocalDataSaver provides dataSaver){
+    ExampleComposable()
+}
+
+// Or custom key prefix
+val customDataSaver = DataSaverLocalStorage(
+    keyPrefix = "MyApp_", // Custom key prefix to avoid conflicts
+    senseExternalDataChange = false // WASM does not support external change monitoring for now
+)
+```
+
+WASM implementation features:
+- **Lightweight**: Based on browser native localStorage API
+- **Key prefix**: Supports custom key prefix to avoid conflicts with other application data
+- **Basic types**: Supports basic data types like `String`, `Int`, `Long`, `Boolean`, `Float`, `Double`
+
 The supported types by each of them are as follows:
 
 
-|   Type    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences | DataSaverProperties/DataSaverEncryptedProperties |
-| :-------: | :-----------------: | :-----------: | :---------------------------: | :----------------------------------------------: |
-|    Int    |          Y          |       Y       |               Y               |                        Y                         |
-|  Boolean  |          Y          |       Y       |               Y               |                        Y                         |
-|  String   |          Y          |       Y       |               Y               |                        Y                         |
-|   Long    |          Y          |       Y       |               Y               |                        Y                         |
-|   Float   |          Y          |       Y       |               Y               |                        Y                         |
-|  Double   |                     |       Y       |               Y               |                        Y                         |
-| Parceable |                     |       Y       |                               |                                                  |
-| ByteArray |                     |       Y       |                               |                                                  |
+|   Type    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences | DataSaverProperties/DataSaverEncryptedProperties | DataSaverNSUserDefaults | DataSaverLocalStorage |
+| :-------: | :-----------------: | :-----------: | :---------------------------: | :----------------------------------------------: | :---------------------: | :-------------------: |
+|    Int    |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|  Boolean  |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|  String   |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|   Long    |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|   Float   |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|  Double   |                     |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+| Parceable |                     |       Y       |                               |                                                  |                         |                       |
+| ByteArray |                     |       Y       |                               |                                                  |            Y            |                       |
+|   List    |                     |                |                               |                                                  |            Y            |                       |
+|    Map    |                     |                |                               |                                                  |            Y            |                       |
+|  NSDate   |                     |                |                               |                                                  |            Y            |                       |
+|    URL    |                     |                |                               |                                                  |            Y            |                       |
 
 
 ## Save Data

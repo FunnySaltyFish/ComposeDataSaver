@@ -2,11 +2,13 @@
 
 | [![Maven Central](https://img.shields.io/maven-central/v/io.github.FunnySaltyFish/data-saver-core)](https://central.sonatype.com/artifact/io.github.FunnySaltyFish/data-saver-core) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ |
+| ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white) | ![JVM](https://img.shields.io/badge/JVM-ED8B00?logo=openjdk&logoColor=white) |
+| ![iOS](https://img.shields.io/badge/iOS-000000?logo=ios&logoColor=white) | ![WASM](https://img.shields.io/badge/WASM-654FF0?logo=webassembly&logoColor=white) |
 
 | [English Version](README_en.md) |
 > 英文的 README 是由[译站](https://github.com/FunnySaltyFish/Transtation-KMP)的长文翻译功能直接一键翻译自中文版本的。这是一个强大的翻译应用程序，利用大型语言模型的力量进行翻译，也由我开发。它还是一个**开源的Compose跨平台应用，并使用这个库来保存数据**。如果你在寻找一个完整的项目，可以去那看看
 
-优雅地在 Compose Multiplatform ( Android / JVM Desktop ) 中完成数据持久化
+优雅地在 Compose Multiplatform ( Android / JVM Desktop / iOS / WASM ) 中完成数据持久化
 
 ```kotlin
 // booleanExample 初始化值为 false
@@ -157,20 +159,68 @@ CompositionLocalProvider(LocalDataSaver provides dataSaver){
 }
 ```
 
+### iOS
 
+iOS 平台默认包含了基于 `NSUserDefaults` 的实现类 `DataSaverNSUserDefaults`，它提供了增强的数据类型支持和外部变更监听能力。您可以如下初始化：
+
+```kotlin
+// 使用默认的 NSUserDefaults 实例
+val dataSaver = DefaultDataSaverNSUserDefaults
+CompositionLocalProvider(LocalDataSaver provides dataSaver){
+    ExampleComposable()
+}
+
+// 或者自定义配置
+val customDataSaver = DataSaverNSUserDefaults(
+    userDefaults = NSUserDefaults.standardUserDefaults,
+    senseExternalDataChange = true // 启用外部变更监听
+)
+```
+
+iOS 实现支持以下额外特性：
+- **丰富的数据类型**: 除基本类型外，还支持 `ByteArray`、`List(Int/String/Boolean)`、`Map(String, Int/String/Boolean)`、`NSDate`、URL 等
+- **KVO 变更监听**: 可监听外部对 NSUserDefaults 的修改
+- **内存管理优化**: 使用 `autoreleasepool` 进行内存管理
+
+### WASM
+
+WASM 平台基于浏览器的 `localStorage` 实现数据持久化，适用于 Web 应用。您可以如下初始化：
+
+```kotlin
+// 使用默认配置
+val dataSaver = DefaultDataSaverLocalStorage
+CompositionLocalProvider(LocalDataSaver provides dataSaver){
+    ExampleComposable()
+}
+
+// 或者自定义键前缀
+val customDataSaver = DataSaverLocalStorage(
+    keyPrefix = "MyApp_", // 自定义键前缀，避免冲突
+    senseExternalDataChange = false // WASM 暂不支持外部变更监听
+)
+```
+
+WASM 实现特点：
+- **轻量级**: 基于浏览器原生 localStorage API
+- **键前缀**: 支持自定义键前缀，避免与其他应用数据冲突  
+- **基本类型**: 支持 `String`、`Int`、`Long`、`Boolean`、`Float`、`Double` 等基本数据类型
 
 几者默认支持的类型如下所示
 
-|   类型    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences | DataSaverProperties/DataSaverEncryptedProperties |
-| :-------: | :-----------------: | :-----------: | :---------------------------: | :----------------------------------------------: |
-|    Int    |          Y          |       Y       |               Y               |                        Y                         |
-|  Boolean  |          Y          |       Y       |               Y               |                        Y                         |
-|  String   |          Y          |       Y       |               Y               |                        Y                         |
-|   Long    |          Y          |       Y       |               Y               |                        Y                         |
-|   Float   |          Y          |       Y       |               Y               |                        Y                         |
-|  Double   |                     |       Y       |               Y               |                        Y                         |
-| Parceable |                     |       Y       |                               |                                                  |
-| ByteArray |                     |       Y       |                               |                                                  |
+|   类型    | DataSaverPreference | DataSaverMMKV | DataSaverDataStorePreferences | DataSaverProperties/DataSaverEncryptedProperties | DataSaverNSUserDefaults | DataSaverLocalStorage |
+| :-------: | :-----------------: | :-----------: | :---------------------------: | :----------------------------------------------: | :---------------------: | :-------------------: |
+|    Int    |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|  Boolean  |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|  String   |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|   Long    |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|   Float   |          Y          |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+|  Double   |                     |       Y       |               Y               |                        Y                         |            Y            |           Y           |
+| Parceable |                     |       Y       |                               |                                                  |                         |                       |
+| ByteArray |                     |       Y       |                               |                                                  |            Y            |                       |
+|   List    |                     |                |                               |                                                  |            Y            |                       |
+|    Map    |                     |                |                               |                                                  |            Y            |                       |
+|  NSDate   |                     |                |                               |                                                  |            Y            |                       |
+|    URL    |                     |                |                               |                                                  |            Y            |                       |
 
 
 
