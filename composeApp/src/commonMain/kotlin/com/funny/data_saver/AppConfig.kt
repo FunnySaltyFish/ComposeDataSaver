@@ -5,7 +5,6 @@ import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.kmp.Log
 import com.funny.data_saver.ui.ExampleBean
 import com.funny.data_saver.ui.ThemeType
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 expect object AppConfig {
