@@ -2,7 +2,7 @@
 gradleMavenPublishPlugin = "0.34.0"
 agp = "8.11.1"
 group = "io.github.FunnySaltyFish"
-project = "1.2.2"
+project = "1.2.3"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"

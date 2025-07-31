@@ -58,7 +58,7 @@ dependencyResolutionManagement {
 
 ```bash
 dependencies {
-    implementation "io.github.FunnySaltyFish:data-saver-core:{version}"
+    implementation "io.github.FunnySaltyFish:data-saver-core:1.2.3"
 }
 ```
 
@@ -91,7 +91,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
 
 ```bash
 // if you want to use mmkv
-implementation "io.github.FunnySaltyFish:data-saver-mmkv:{tag}"
+implementation "io.github.FunnySaltyFish:data-saver-mmkv:1.2.3"
 implementation 'com.tencent:mmkv:1.2.14'
 ```
 
@@ -119,7 +119,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 
 ```bash
 // if you want to use DataStore
-implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:{tag}"
+implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:1.2.3"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"

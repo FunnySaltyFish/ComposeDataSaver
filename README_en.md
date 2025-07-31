@@ -57,7 +57,7 @@ Include in project `build.gradle`
 
 ```bash
 dependencies {
-    implementation "io.github.FunnySaltyFish:data-saver-core:{version}"
+    implementation "io.github.FunnySaltyFish:data-saver-core:1.2.3"
 }
 ```
 > Note: Starting from v1.2.0, the repository has been migrated to Compose Multiplatform and released to Maven Central. The Group Id has also been changed. When upgrading from versions before v1.2.0, please remember to make the necessary changes.
@@ -93,7 +93,7 @@ The following:
 
 ```bash
 // If you want to use MMKV
-implementation "io.github.FunnySaltyFish:data-saver-mmkv:{tag}"
+implementation "io.github.FunnySaltyFish:data-saver-mmkv:1.2.3"
 implementation 'com.tencent:mmkv:1.2.14'
 ```
 
@@ -121,7 +121,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 
 ```bash
 // if you want to use DataStore
-implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:{tag}"
+implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:1.2.3"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"
