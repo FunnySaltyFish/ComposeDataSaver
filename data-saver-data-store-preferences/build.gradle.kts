@@ -34,18 +34,15 @@ android {
 
 tasks.register<Jar>("generateSourcesJar") {
     from(android.sourceSets["main"].java.srcDirs)
-//    archiveClassifier.set("sources")
 }
 
 dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.runtime)
-//    compileOnly(libs.kotlin.stdlib)
 
     compileOnly(libs.datastore)
     compileOnly(libs.datastore.preferences)
     implementation(project(":data-saver-core"))
-//    compileOnly(libs.kotlinx.coroutines.core)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

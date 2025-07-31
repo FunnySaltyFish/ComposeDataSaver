@@ -1,20 +1,18 @@
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.kotlin.dsl.`maven-publish`
-import org.gradle.kotlin.dsl.signing
-import java.util.*
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
+import java.util.Properties
 
 plugins {
-    `maven-publish`
-    signing
+    id("com.vanniktech.maven.publish")
 }
 
 // Stub secrets to let the project sync and build without the publication values set up
 ext["signing.keyId"] = null
 ext["signing.password"] = null
 ext["signing.secretKeyRingFile"] = null
-ext["ossrhUsername"] = null
-ext["ossrhPassword"] = null
+ext["signing.key"] = null
+ext["mavenCentralUsername"] = null
+ext["mavenCentralPassword"] = null
 
 // Grabbing secrets from local.properties file or from environment variables, which could be used on CI
 val secretPropsFile = project.rootProject.file("local.properties")
@@ -30,88 +28,78 @@ if (secretPropsFile.exists()) {
     ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
     ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
     ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
-    ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
-    ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
-}
-
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
+    ext["signing.key"] = System.getenv("GPG_KEY_CONTENTS")
+    ext["mavenCentralUsername"] = System.getenv("MAVEN_CENTRAL_USERNAME")
+    ext["mavenCentralPassword"] = System.getenv("MAVEN_CENTRAL_PASSWORD")
 }
 
 fun getExtraString(name: String) = ext[name]?.toString()
 
-publishing {
-    // Configure maven central repository
-    repositories {
-        maven {
-            name = "sonatype"
-            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = getExtraString("ossrhUsername")
-                password = getExtraString("ossrhPassword")
-            }
-        }
+mavenPublishing {
+    // Configure publishing to Maven Central
+    publishToMavenCentral()
+
+    // Configure signing
+    signAllPublications()
+
+    // Configure what to publish - for Kotlin Multiplatform projects
+    // 如果依赖了 kotlin multiplatform，则需要配置
+    if (project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+        configure(
+            KotlinMultiplatform(
+                javadocJar = JavadocJar.Empty(),
+                sourcesJar = true,
+                androidVariantsToPublish = listOf("debug", "release")
+            )
+        )
     }
 
-    // Configure all publications
-    publications.withType<MavenPublication> {
-        // Stub javadoc.jar artifact
-        artifact(javadocJar.get())
+    // Configure publication coordinates and metadata
+    val group = libs.findVersionAsString("group")
+    val version = libs.findVersionAsString("project")
+    println("group: $group, version: $version")
+    coordinates(
+        groupId = group,
+        artifactId = project.name,
+        version = version
+    )
 
-        // Provide artifacts information requited by Maven Central
-        pom {
-            name.set("ComposeDataSaver")
-            description.set("在 Compose Multiplatform 中优雅完成数据持久化 | An elegant way to do data persistence in Compose Multiplatform")
+    // Provide artifacts information requited by Maven Central
+    pom {
+        name.set("ComposeDataSaver")
+        description.set("在 Compose Multiplatform 中优雅完成数据持久化 | An elegant way to do data persistence in Compose Multiplatform")
+        url.set("https://github.com/FunnySaltyFish/ComposeDataSaver")
+
+        licenses {
+            license {
+                name.set("Apache License 2.0")
+                url.set("https://opensource.org/licenses/Apache-2.0")
+            }
+        }
+        developers {
+            developer {
+                id.set("FunnySaltyFish")
+                name.set("FunnySaltyFish")
+                email.set("funnysaltyfish@foxmail.com")
+            }
+        }
+        scm {
             url.set("https://github.com/FunnySaltyFish/ComposeDataSaver")
-
-            licenses {
-                license {
-                    name.set("Apache License 2.0")
-                    url.set("https://opensource.org/licenses/Apache-2.0")
-                }
-            }
-            developers {
-                developer {
-                    id.set("FunnySaltyFish")
-                    name.set("FunnySaltyFish")
-                    email.set("funnysaltyfish@foxmail.com")
-                }
-            }
-            scm {
-                url.set("https://github.com/FunnySaltyFish/ComposeDataSaver")
-            }
         }
     }
 }
 
-// Signing artifacts. Signing.* extra properties values will be used
-signing {
-    sign(publishing.publications)
-}
+// 输出调试信息
+val mavenCentralUsername = getExtraString("mavenCentralUsername")
+val mavenCentralPassword = getExtraString("mavenCentralPassword")
+val signingKeyId = getExtraString("signing.keyId")
+val signingPassword = getExtraString("signing.password")
+val signingKey = getExtraString("signing.key")
 
+println("Signing Key ID: $signingKeyId, Signing Password: ${signingPassword?.length}, Signing Key: ${signingKey?.length}")
+println("mavenCentral Username: $mavenCentralUsername, mavenCentral Password: ${mavenCentralPassword?.length}")
 
-afterEvaluate {
-    // 设置所有的 publish 任务 需要在 sign 之后
-    // 我也不知道为什么需要手动这么写，但是 Gradle 一直报错，只好按着报错一点点尝试
-    // 最后写出了这一堆。。。
-    val signTasks = tasks.filter { it.name.startsWith("sign") && it.name != "sign"}
+val Project.libs
+    get(): VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
-    // project.logger.warn(signTasks.joinToString { it.name + ", " })
-    tasks.configureEach {
-        // project.logger.warn("task name: $name")
-        if (!name.startsWith("publish")) return@configureEach
-        if (name == "publish") return@configureEach
-
-        signTasks.forEach { signTask ->
-            this.dependsOn(signTask)
-        }
-    }
-
-    // Reason: Task ':data-saver-data-store-preferences:generateMetadataFileForReleasePublication' uses this output of task ':data-saver-data-store-preferences:generateSourcesJar' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
-    val generateSourcesJar = tasks.findByName("generateSourcesJar") ?: return@afterEvaluate
-    tasks.configureEach {
-        if (!name.startsWith("generateMetadataFileFor")) return@configureEach
-
-        this.dependsOn(generateSourcesJar)
-    }
-}
+fun VersionCatalog.findVersionAsString(alias: String) = findVersion(alias).get().toString()
