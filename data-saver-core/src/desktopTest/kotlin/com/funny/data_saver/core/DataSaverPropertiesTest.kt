@@ -153,6 +153,66 @@ class DataSaverPropertiesTest : DataSaverInterfaceTest() {
             assertEquals(expected, results[key])
         }
     }
+    
+    @Test
+    fun testFileMonitoringFeature() {
+        val key = "file_monitoring_test"
+        val value1 = "value_from_instance1"
+        val value2 = "value_from_instance2"
+        
+        // 创建两个DataSaver实例，都启用文件监控
+        val dataSaver1 = DataSaverProperties(testFile.absolutePath, enableFileMonitoring = true)
+        val dataSaver2 = DataSaverProperties(testFile.absolutePath, enableFileMonitoring = true)
+        
+        // 实例1保存数据
+        dataSaver1.saveData(key, value1)
+        
+        // 验证实例1可以读取自己保存的数据
+        val result1 = dataSaver1.readData(key, "default")
+        assertEquals(value1, result1)
+        
+        // 验证实例2可以读取到实例1保存的数据（文件监控生效）
+        val result2 = dataSaver2.readData(key, "default")
+        assertEquals(value1, result2)
+        
+        // 实例2修改数据
+        dataSaver2.saveData(key, value2)
+        
+        // 验证实例1可以读取到实例2修改的数据（文件监控生效）
+        val result3 = dataSaver1.readData(key, "default")
+        assertEquals(value2, result3)
+        
+        // 验证实例2可以读取自己修改的数据
+        val result4 = dataSaver2.readData(key, "default")
+        assertEquals(value2, result4)
+    }
+    
+    @Test
+    fun testFileMonitoringDisabled() {
+        val key = "no_monitoring_test"
+        val value1 = "value_from_instance1" 
+        val value2 = "value_from_instance2"
+        
+        // 创建第一个实例，不启用文件监控
+        val dataSaver1 = DataSaverProperties(testFile.absolutePath, enableFileMonitoring = false)
+        
+        // 实例1保存数据
+        dataSaver1.saveData(key, value1)
+        
+        // 创建第二个实例，不启用文件监控（在实例1保存数据后创建）
+        val dataSaver2 = DataSaverProperties(testFile.absolutePath, enableFileMonitoring = false)
+        
+        // 实例2读取应该得到实例1的数据（初始化时加载了文件）
+        val result1 = dataSaver2.readData(key, "default")
+        assertEquals(value1, result1)
+        
+        // 实例1修改数据
+        dataSaver1.saveData(key, value2)
+        
+        // 实例2读取应该仍然是缓存的旧值（文件监控未启用）
+        val result2 = dataSaver2.readData(key, "default") 
+        assertEquals(value1, result2) // 仍然是旧值，因为没有重新加载文件
+    }
 }
 
 /**
@@ -242,10 +302,6 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
         // 应该无法正确读取数据，返回默认值
         val result = wrongPasswordDataSaver.readData(key, "default_value")
         assertEquals("default_value", result)
-        
-        // 清理
-        secureDataSaver.clearCipherCache()
-        wrongPasswordDataSaver.clearCipherCache()
     }
     
     @Test
@@ -253,9 +309,9 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
         val key = "password_change_test"
         val value = "password_change_value"
         
-        // 使用第一个密码保存数据（启用数据完整性检查）
+        // 使用第一个密码保存数据（启用数据完整性检查和文件监控）
         val firstDataSaver = DataSaverEncryptedProperties(
-            testFile.absolutePath, testPassword, enableDataIntegrityCheck = true
+            testFile.absolutePath, testPassword, enableDataIntegrityCheck = true, enableFileMonitoring = true
         )
         firstDataSaver.saveData(key, value)
         
@@ -266,7 +322,7 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
         // 更改密码
         val newPassword = "new_password_456"
         val newPasswordDataSaver = DataSaverEncryptedProperties(
-            testFile.absolutePath, newPassword, enableDataIntegrityCheck = true
+            testFile.absolutePath, newPassword, enableDataIntegrityCheck = true, enableFileMonitoring = true
         )
         
         // 使用新密码读取应该失败（返回默认值）
@@ -283,10 +339,6 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
         // 验证旧密码现在无法读取（因为数据已被新密码重新加密）
         val oldPasswordResult = firstDataSaver.readData(key, "old_default")
         assertEquals("old_default", oldPasswordResult)
-        
-        // 清理
-        firstDataSaver.clearCipherCache()
-        newPasswordDataSaver.clearCipherCache()
     }
     
     @Test
@@ -338,9 +390,6 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
         )
         val compatResult = anotherDataSaver.readData(key, "default")
         assertEquals(value, compatResult)
-        
-        defaultDataSaver.clearCipherCache()
-        anotherDataSaver.clearCipherCache()
     }
     
     @Test
@@ -357,7 +406,6 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
         val result = secureDataSaver.readData(key, "default")
         
         assertEquals(value, result)
-        secureDataSaver.clearCipherCache()
     }
     
     @Test
@@ -375,9 +423,6 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
             
             assertEquals(testValue, result)
         }
-        
-        // 清理缓存
-        dataSaverEncryptedProperties.clearCipherCache()
         
         // 清理后仍然应该正常工作
         dataSaverEncryptedProperties.saveData(key, value)
@@ -415,7 +460,5 @@ class DataSaverEncryptedPropertiesTest : DataSaverInterfaceTest() {
             val expectedValue = "thread_value_$index"
             assertEquals(expectedValue, results[testKey])
         }
-        
-        dataSaverEncryptedProperties.clearCipherCache()
     }
 } 

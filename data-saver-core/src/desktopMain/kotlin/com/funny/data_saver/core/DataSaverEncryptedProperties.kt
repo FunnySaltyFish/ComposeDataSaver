@@ -23,31 +23,58 @@ import javax.crypto.spec.SecretKeySpec
  *        When enabled, it can detect wrong passwords or corrupted data, but breaks backward compatibility with existing encrypted data.
  *        Default is false to maintain backward compatibility.
  *        是否启用数据完整性检查，通过在加密数据中添加前缀来实现。启用后可以检测错误密码或数据损坏，但会破坏与现有加密数据的向后兼容性。默认为false以保持向后兼容性。
+ * @param enableFileMonitoring Boolean Whether to enable automatic file monitoring to detect external changes.
+ *        When enabled, the properties cache will be reloaded if the file was modified by other instances.
+ *        Default is false to avoid performance overhead.
+ *        是否启用自动文件监控以检测外部更改。启用后，如果文件被其他实例修改，属性缓存将重新加载。默认为false以避免性能开销。
  */
 
 open class DataSaverEncryptedProperties(
     private val filePath: String,
     private val encryptionKey: String,
     private val fileEncoding: String = "UTF-8",
-    private val enableDataIntegrityCheck: Boolean = false
+    private val enableDataIntegrityCheck: Boolean = false,
+    private val enableFileMonitoring: Boolean = false
 ) : DataSaverInterface() {
     private val properties = Properties()
     private val hashedKey = hashKey(encryptionKey)
-    
-    // 使用 ThreadLocal 缓存 cipher 实例以提高性能并确保线程安全
-    private val encryptCipherCache = ThreadLocal<Cipher>()
-    private val decryptCipherCache = ThreadLocal<Cipher>()
+    private var lastModified: Long = 0
 
     init {
+        loadProperties()
+    }
+    
+    private fun loadProperties() {
         try {
-            InputStreamReader(FileInputStream(filePath), fileEncoding).use { reader ->
-                properties.load(reader)
+            val file = java.io.File(filePath)
+            if (file.exists()) {
+                lastModified = file.lastModified()
+                InputStreamReader(FileInputStream(filePath), fileEncoding).use { reader ->
+                    properties.clear()
+                    properties.load(reader)
+                }
+            } else {
+                createFile(filePath)
+                lastModified = 0
             }
         } catch (e: FileNotFoundException) {
             // 处理文件不存在等异常
             createFile(filePath)
+            lastModified = 0
         } catch (e: Exception) {
             Log.e(TAG, "Error loading properties: ${e.message}", e)
+        }
+    }
+    
+    private fun checkAndReloadIfModified() {
+        if (!enableFileMonitoring) return
+        try {
+            val file = java.io.File(filePath)
+            if (file.exists() && file.lastModified() > lastModified) {
+                loadProperties()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking file modification: ${e.message}", e)
         }
     }
 
@@ -55,6 +82,11 @@ open class DataSaverEncryptedProperties(
         try {
             OutputStreamWriter(FileOutputStream(filePath), fileEncoding).use { writer ->
                 properties.store(writer, null)
+            }
+            // 更新最后修改时间
+            val file = java.io.File(filePath)
+            if (file.exists()) {
+                lastModified = file.lastModified()
             }
         } catch (e: FileNotFoundException) {
             Log.e(TAG, "File not found: $filePath")
@@ -70,28 +102,6 @@ open class DataSaverEncryptedProperties(
         cipher.init(mode, keySpec, ivParameterSpec)
         return cipher
     }
-    
-    /**
-     * 获取加密cipher，使用ThreadLocal缓存以提高性能
-     */
-    private fun getEncryptCipher(): Cipher {
-        return encryptCipherCache.get() ?: run {
-            val cipher = createCipher(Cipher.ENCRYPT_MODE)
-            encryptCipherCache.set(cipher)
-            cipher
-        }
-    }
-    
-    /**
-     * 获取解密cipher，使用ThreadLocal缓存以提高性能
-     */
-    private fun getDecryptCipher(): Cipher {
-        return decryptCipherCache.get() ?: run {
-            val cipher = createCipher(Cipher.DECRYPT_MODE)
-            decryptCipherCache.set(cipher)
-            cipher
-        }
-    }
 
     private fun hashKey(key: String): ByteArray {
         val md = MessageDigest.getInstance("SHA-256")
@@ -106,13 +116,13 @@ open class DataSaverEncryptedProperties(
             value
         }
         
-        val cipher = getEncryptCipher()
+        val cipher = createCipher(Cipher.ENCRYPT_MODE)
         val encryptedBytes = cipher.doFinal(dataToEncrypt.toByteArray())
         return Base64.getEncoder().encodeToString(encryptedBytes)
     }
 
     private fun decrypt(value: String): String {
-        val cipher = getDecryptCipher()
+        val cipher = createCipher(Cipher.DECRYPT_MODE)
         val decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(value))
         val decryptedString = String(decryptedBytes)
         
@@ -139,6 +149,7 @@ open class DataSaverEncryptedProperties(
     }
 
     override fun <T> readData(key: String, default: T): T {
+        checkAndReloadIfModified()
         val encryptedValue = properties.getProperty(key) ?: return default
         val decryptedValue = try {
             decrypt(encryptedValue)
@@ -163,18 +174,8 @@ open class DataSaverEncryptedProperties(
     }
 
     override fun contains(key: String): Boolean {
+        checkAndReloadIfModified()
         return properties.containsKey(key)
-    }
-    
-    /**
-     * Clear cipher caches to free memory.
-     * Call this method when the instance is no longer needed or in long-running applications.
-     * 清理cipher缓存以释放内存。
-     * 当实例不再需要或在长时间运行的应用程序中时调用此方法。
-     */
-    fun clearCipherCache() {
-        encryptCipherCache.remove()
-        decryptCipherCache.remove()
     }
 
     companion object {
