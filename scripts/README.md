@@ -34,7 +34,7 @@
 
 更新内容包括：
 - Kotlin 版本徽章: `[![Kotlin Version](https://img.shields.io/badge/Kotlin-2.2.0-B125EA?logo=kotlin)]`
-- 依赖引入代码: `implementation("io.github.FunnySaltyFish:data-saver-core:1.2.2")`
+- 依赖引入代码: `implementation("io.github.funnysaltyfish:data-saver-core:1.2.2")`
 
 ## 使用方法
 

@@ -1,7 +1,7 @@
 [versions]
 gradleMavenPublishPlugin = "0.34.0"
 agp = "8.11.1"
-group = "io.github.FunnySaltyFish"
+group = "io.github.funnysaltyfish"
 project = "1.2.3"
 android-compileSdk = "36"
 android-minSdk = "24"

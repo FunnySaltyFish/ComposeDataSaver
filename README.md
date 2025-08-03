@@ -1,6 +1,6 @@
 # ComposeDataSaver
 
-| [![Maven Central](https://img.shields.io/maven-central/v/io.github.FunnySaltyFish/data-saver-core)](https://central.sonatype.com/artifact/io.github.FunnySaltyFish/data-saver-core) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
+| [![Maven Central](https://img.shields.io/maven-central/v/io.github.funnysaltyfish/data-saver-core)](https://central.sonatype.com/artifact/io.github.funnysaltyfish/data-saver-core) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ |
 | ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white) | ![JVM](https://img.shields.io/badge/JVM-ED8B00?logo=openjdk&logoColor=white) |
 | ![iOS](https://img.shields.io/badge/iOS-000000?logo=ios&logoColor=white) | ![WASM](https://img.shields.io/badge/WASM-654FF0?logo=webassembly&logoColor=white) |
@@ -60,7 +60,7 @@ dependencyResolutionManagement {
 
 ```bash
 dependencies {
-    implementation "io.github.FunnySaltyFish:data-saver-core:1.2.3"
+    implementation "io.github.funnysaltyfish:data-saver-core:1.2.3"
 }
 ```
 
@@ -93,7 +93,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
 
 ```bash
 // if you want to use mmkv
-implementation "io.github.FunnySaltyFish:data-saver-mmkv:1.2.3"
+implementation "io.github.funnysaltyfish:data-saver-mmkv:1.2.3"
 implementation 'com.tencent:mmkv:1.2.14'
 ```
 
@@ -121,7 +121,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 
 ```bash
 // if you want to use DataStore
-implementation "io.github.FunnySaltyFish:data-saver-data-store-preferences:1.2.3"
+implementation "io.github.funnysaltyfish:data-saver-data-store-preferences:1.2.3"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"
