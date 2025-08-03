@@ -17,76 +17,76 @@ actual object LoggerImpl: Logger {
         throwable?.printStackTrace()
     }
 
-    override fun d(msg: String) {
+    actual override fun d(msg: String) {
         log(LogLevel.DEBUG, msg = msg)
     }
 
-    override fun d(tag: String, msg: String) {
+    actual override fun d(tag: String, msg: String) {
         log(LogLevel.DEBUG, tag, msg)
     }
 
-    override fun d(tag: String, msg: String, throwable: Throwable) {
+    actual override fun d(tag: String, msg: String, throwable: Throwable) {
         log(LogLevel.DEBUG, tag, msg, throwable)
     }
 
-    override fun i(msg: String) {
+    actual override fun i(msg: String) {
         log(LogLevel.INFO, msg = msg)
     }
 
-    override fun i(tag: String, msg: String) {
+    actual override fun i(tag: String, msg: String) {
         log(LogLevel.INFO, tag, msg)
     }
 
-    override fun i(tag: String, msg: String, throwable: Throwable) {
+    actual override fun i(tag: String, msg: String, throwable: Throwable) {
         log(LogLevel.INFO, tag, msg, throwable)
     }
 
-    override fun e(msg: String) {
+    actual override fun e(msg: String) {
         log(LogLevel.ERROR, msg = msg)
     }
 
-    override fun e(tag: String, msg: String) {
+    actual override fun e(tag: String, msg: String) {
         log(LogLevel.ERROR, tag, msg)
     }
 
-    override fun e(tag: String, msg: String, throwable: Throwable) {
+    actual override fun e(tag: String, msg: String, throwable: Throwable) {
         log(LogLevel.ERROR, tag, msg, throwable)
     }
 
-    override fun w(msg: String) {
+    actual override fun w(msg: String) {
         log(LogLevel.WARNING, msg = msg)
     }
 
-    override fun w(tag: String, msg: String) {
+    actual override fun w(tag: String, msg: String) {
         log(LogLevel.WARNING, tag, msg)
     }
 
-    override fun w(tag: String, msg: String, throwable: Throwable) {
+    actual override fun w(tag: String, msg: String, throwable: Throwable) {
         log(LogLevel.WARNING, tag, msg, throwable)
     }
 
 
-    override fun wtf(msg: String) {
+    actual override fun wtf(msg: String) {
         log(LogLevel.WTF, msg = msg)
     }
 
-    override fun wtf(tag: String, msg: String) {
+    actual override fun wtf(tag: String, msg: String) {
         log(LogLevel.WTF, tag, msg)
     }
 
-    override fun wtf(tag: String, msg: String, throwable: Throwable) {
+    actual override fun wtf(tag: String, msg: String, throwable: Throwable) {
         log(LogLevel.WTF, tag, msg, throwable)
     }
 
-    override fun v(msg: String) {
+    actual override fun v(msg: String) {
         log(LogLevel.VERBOSE, msg = msg)
     }
 
-    override fun v(tag: String, msg: String) {
+    actual override fun v(tag: String, msg: String) {
         log(LogLevel.VERBOSE, tag, msg)
     }
 
-    override fun v(tag: String, msg: String, throwable: Throwable) {
+    actual override fun v(tag: String, msg: String, throwable: Throwable) {
         log(LogLevel.VERBOSE, tag, msg, throwable)
     }
 

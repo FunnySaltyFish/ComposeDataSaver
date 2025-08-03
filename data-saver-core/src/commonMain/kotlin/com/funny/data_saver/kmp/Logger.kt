@@ -28,6 +28,30 @@ interface Logger {
     fun wtf(tag: String, msg: String, throwable: Throwable) : Unit
 }
 
-expect object LoggerImpl: Logger
+expect object LoggerImpl: Logger {
+    override fun d(msg: String)
+    override fun d(tag: String, msg: String)
+    override fun d(tag: String, msg: String, throwable: Throwable)
+
+    override fun i(msg: String)
+    override fun i(tag: String, msg: String)
+    override fun i(tag: String, msg: String, throwable: Throwable)
+
+    override fun e(msg: String)
+    override fun e(tag: String, msg: String)
+    override fun e(tag: String, msg: String, throwable: Throwable)
+
+    override fun w(msg: String)
+    override fun w(tag: String, msg: String)
+    override fun w(tag: String, msg: String, throwable: Throwable)
+
+    override fun v(msg: String)
+    override fun v(tag: String, msg: String)
+    override fun v(tag: String, msg: String, throwable: Throwable)
+
+    override fun wtf(msg: String)
+    override fun wtf(tag: String, msg: String)
+    override fun wtf(tag: String, msg: String, throwable: Throwable)
+}
 
 val Log get() = DataSaverConfig.logger
