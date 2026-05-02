@@ -21,9 +21,17 @@ kotlin {
         }
     }
 
-    androidTarget { }
-    
-    jvm("desktop")
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        }
+    }
+
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        }
+    }
 
     // 添加 iOS 目标
     listOf(
@@ -139,10 +147,10 @@ android {
             isMinifyEnabled = false
         }
     }
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_1_8
-//        targetCompatibility = JavaVersion.VERSION_1_8
-//    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }
