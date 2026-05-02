@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import com.funny.data_saver.core.DataSaverConverter.findSaver
 import com.funny.data_saver.core.DataSaverConverter.unsupportedType
 import com.funny.data_saver.kmp.IO
+import com.funny.data_saver.kmp.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,6 +49,10 @@ class DataSaverMutableState<T>(
     private val coroutineScope: CoroutineScope? = null,
     private val valueType: KType? = null
 ) : MutableState<T> {
+    private companion object {
+        const val TAG = "DataSaverState"
+    }
+
     private val state = mutableStateOf(initialValue)
     // current data saving job
     var job: Job? by mutableStateOf(null)
@@ -80,6 +85,7 @@ class DataSaverMutableState<T>(
      */
     fun saveData() {
         if (value == null) {
+            log("remove(async: $async): $key -> null")
             dataSaverInterface.remove(key)
             return
         }
@@ -145,16 +151,8 @@ class DataSaverMutableState<T>(
     }
 
 
-    companion object {
-        private const val TAG = "DataSaverState"
-
-        private val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
-            DataSaverLogger(TAG)
-        }
-
-        private fun log(msg: String) {
-            logger.d(msg)
-        }
+    private fun log(msg: String) {
+        Log.i(TAG, msg)
     }
 
     override operator fun component1() = state.value
@@ -204,12 +202,12 @@ inline fun <reified T> rememberDataSaverState(
     LaunchedEffect(key1 = senseExternalDataChange) {
         if (!senseExternalDataChange || state == null) return@LaunchedEffect
         if (!saverInterface.senseExternalDataChange) {
-            DataSaverLogger.e("to enable senseExternalDataChange, you should set `senseExternalDataChange` to true in DataSaverInterface")
+            Log.e("ComposeDataSaver", "to enable senseExternalDataChange, you should set `senseExternalDataChange` to true in DataSaverInterface")
             return@LaunchedEffect
         }
         saverInterface.externalDataChangedFlow?.collect { pair ->
             val (k, v) = pair
-            DataSaverLogger.log("externalDataChangedFlow: $key -> $v")
+            Log.i("ComposeDataSaver", "externalDataChangedFlow: $key -> $v")
             if (k == key && v != state?.value) {
                 val d = if (v != null) {
                     if (v is String) {
@@ -232,7 +230,7 @@ inline fun <reified T> rememberDataSaverState(
 
     DisposableEffect(key, savePolicy) {
         onDispose {
-            DataSaverLogger.log("rememberDataSaverState: state of key=\"$key\" onDisposed!")
+            Log.i("ComposeDataSaver", "rememberDataSaverState: state of key=\"$key\" onDisposed!")
             if (savePolicy == SavePolicy.DISPOSED && state != null && state!!.valueChangedSinceInit()) {
                 state!!.saveData()
             }
@@ -274,15 +272,26 @@ inline fun <reified T> mutableDataSaverStateOf(
     val valueType = typeOf<T>()
     val restorer = resolveRestorer(typeConverter, valueType, initialValue)
     val data = when {
-        !dataSaverInterface.contains(key) -> initialValue
+        !dataSaverInterface.contains(key) -> {
+            Log.i("DataSaverState", "readData: $key -> <missing>, fallback to initialValue=$initialValue")
+            initialValue
+        }
         restorer != null -> runCatching {
-            restorer(dataSaverInterface.readData(key, "")) as T
+            val raw = dataSaverInterface.readData(key, "")
+            Log.i("DataSaverState", "readConvertedData: $key -> $raw")
+            (restorer(raw) as T).also {
+                Log.i("DataSaverState", "restoreData: $key -> $it")
+            }
         }.recoverCatching {
-            dataSaverInterface.readData(key, initialValue)
+            dataSaverInterface.readData(key, initialValue).also {
+                Log.w("DataSaverState", "restoreData failed for key=$key, fallback to direct read -> $it")
+            }
         }.onFailure {
-            DataSaverLogger.e("error while restoring data(key=$key), set to default. StackTrace:\n${it.stackTraceToString()}")
+            Log.e("ComposeDataSaver", "error while restoring data(key=$key), set to default. StackTrace:\n${it.stackTraceToString()}")
         }.getOrDefault(initialValue)
-        else -> dataSaverInterface.readData(key, initialValue)
+        else -> dataSaverInterface.readData(key, initialValue).also {
+            Log.i("DataSaverState", "readData: $key -> $it")
+        }
     }
     return DataSaverMutableState(dataSaverInterface, key, data, typeConverter, savePolicy, async, coroutineScope, valueType)
 }

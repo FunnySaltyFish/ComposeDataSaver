@@ -12,7 +12,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.funny.data_saver.core.DataSaverInterface
-import com.funny.data_saver.core.DataSaverLogger
+import com.funny.data_saver.kmp.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,14 +29,17 @@ open class DataSaverDataStorePreferences(
     private val dataStore: DataStore<Preferences>,
     senseExternalDataChange: Boolean = false
 ) : DataSaverInterface(senseExternalDataChange) {
+    private companion object {
+        const val TAG = "DataStorePreferences"
+    }
+
     private val scope by lazy { CoroutineScope(Dispatchers.IO) }
-    private val logger by lazy { DataSaverLogger("DataStorePreferences") }
     init {
         if (senseExternalDataChange) {
             scope.launch {
                 dataStore.data.distinctUntilChanged().collect {
                     it.asMap().forEach { (key, value) ->
-                        logger.d("$key -> $value is emitted")
+                        Log.d(TAG, "$key -> $value is emitted")
                         externalDataChangedFlow?.tryEmit(key.name to value)
                     }
                 }

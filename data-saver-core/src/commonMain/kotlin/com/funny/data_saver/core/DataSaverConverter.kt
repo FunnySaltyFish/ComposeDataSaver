@@ -1,5 +1,6 @@
 package com.funny.data_saver.core
 
+import com.funny.data_saver.kmp.Log
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -95,11 +96,6 @@ object DataSaverConverter {
         mutableMapOf()
     }
 
-    @PublishedApi
-    internal val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        DataSaverLogger("DataSaverConverter")
-    }
-
     init {
         registerDefaultTypeConverters()
     }
@@ -176,7 +172,7 @@ object DataSaverConverter {
 
     fun <T> findSaver(data: T): ((Any?) -> String)? {
         return findTypeConverterByValue(data)?.also {
-            logger.d("findSaver for data($data): $it")
+            Log.d("DataSaverConverter", "findSaver for data($data): $it")
         }?.let {
             it::save
         }
@@ -185,7 +181,7 @@ object DataSaverConverter {
     @PublishedApi
     internal fun findSaver(type: KType): ((Any?) -> String)? {
         return findTypeConverterByType(type)?.also {
-            logger.d("findSaver for type($type): $it")
+            Log.d("DataSaverConverter", "findSaver for type($type): $it")
         }?.let {
             it::save
         }
@@ -194,7 +190,7 @@ object DataSaverConverter {
     @PublishedApi
     internal fun findSaver(type: KType?, data: Any?): ((Any?) -> String)? {
         return findTypeConverter(type, data)?.also {
-            logger.d("findSaver for type($type), data($data): $it")
+            Log.d("DataSaverConverter", "findSaver for type($type), data($data): $it")
         }?.let {
             it::save
         }
@@ -202,14 +198,14 @@ object DataSaverConverter {
 
     inline fun <reified T> findTypeConverter(data: T): ITypeConverter? {
         return findTypeConverter(typeOf<T>(), data).also {
-            logger.d("findTypeConverter for data($data): $it")
+            Log.d("DataSaverConverter", "findTypeConverter for data($data): $it")
         }
     }
 
     @PublishedApi
     internal fun findRestorer(type: KType): ((String) -> Any?)? {
         return findTypeConverterByType(type)?.also {
-            logger.d("findRestorer for type($type): $it")
+            Log.d("DataSaverConverter", "findRestorer for type($type): $it")
         }?.let {
             it::restore
         }

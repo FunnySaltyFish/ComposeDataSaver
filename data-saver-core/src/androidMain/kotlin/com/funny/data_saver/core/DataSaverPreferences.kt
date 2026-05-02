@@ -2,6 +2,7 @@ package com.funny.data_saver.core
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.funny.data_saver.kmp.Log
 
 /**
  * Default implementation using [SharedPreferences] to save data
@@ -10,6 +11,10 @@ open class DataSaverPreferences(
     private val preference: SharedPreferences,
     senseExternalDataChange: Boolean = false
 ) : DataSaverInterface(senseExternalDataChange) {
+    private companion object {
+        const val TAG = "DataSaverPreferences"
+    }
+
     constructor(
         context: Context,
         senseExternalDataChange: Boolean
@@ -28,11 +33,10 @@ open class DataSaverPreferences(
         senseExternalDataChange
     )
 
-    private val logger by lazy { DataSaverLogger("DataSaverPreferences") }
     private val onSharedPreferenceChangeListener by lazy {
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
             key ?: return@OnSharedPreferenceChangeListener
-            logger.d("data changed: $key -> ${sharedPreferences.all[key]}, subscriptionCount: ${externalDataChangedFlow?.subscriptionCount?.value}")
+            Log.d(TAG, "data changed: $key -> ${sharedPreferences.all[key]}, subscriptionCount: ${externalDataChangedFlow?.subscriptionCount?.value}")
             externalDataChangedFlow?.tryEmit(key to sharedPreferences.all[key])
         }
     }

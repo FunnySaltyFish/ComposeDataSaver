@@ -5,6 +5,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.funny.data_saver.kmp.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
@@ -34,6 +35,10 @@ abstract class DataSaverInterface(val senseExternalDataChange: Boolean = false) 
  * @property map MutableMap<String, Any?>
  */
 open class DataSaverInMemory(senseExternalDataChange: Boolean = false) : DataSaverInterface(senseExternalDataChange) {
+    private companion object {
+        const val TAG = "ComposeDataSaver"
+    }
+
     inner class ObservableMap() {
         private val map by lazy {
             mutableMapOf<String, Any?>()
@@ -81,7 +86,7 @@ open class DataSaverInMemory(senseExternalDataChange: Boolean = false) : DataSav
     override fun contains(key: String) = map.containsKey(key)
 
     private fun waringUsage() {
-        DataSaverLogger.w("DataSaverInMemory is used, it's not recommended to use it in production because it saves data in memory, which will be lost when the app is killed. If you are in Preview mode, please ignore this warning.")
+        Log.w(TAG, "DataSaverInMemory is used, it's not recommended to use it in production because it saves data in memory, which will be lost when the app is killed. If you are in Preview mode, please ignore this warning.")
     }
 }
 

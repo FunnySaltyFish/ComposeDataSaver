@@ -22,6 +22,7 @@ import platform.Foundation.create
 import platform.Foundation.removeObserver
 import platform.Foundation.setValue
 import platform.darwin.NSObject
+import com.funny.data_saver.kmp.Log
 import kotlinx.cinterop.autoreleasepool as autorelease
 
 /**
@@ -41,7 +42,7 @@ class UserDefaultsKVOObserver(
     ) {
         keyPath?.let { key ->
             val newValue = change?.get(NSKeyValueChangeNewKey)
-            DataSaverLogger.d("Key '$key' changed to: $newValue")
+            Log.d("ComposeDataSaver", "Key '$key' changed to: $newValue")
             onChanged(key, newValue)
         }
     }
