@@ -59,6 +59,7 @@ kotlin {
                         // Serve sources to debug inside browser
                         add(rootDirPath)
                         add(projectDirPath)
+                        add(project.layout.buildDirectory.dir("generated/compose/resourceGenerator/assembledResources/wasmJsMain").get().asFile.path)
                     }
                 }
             }
