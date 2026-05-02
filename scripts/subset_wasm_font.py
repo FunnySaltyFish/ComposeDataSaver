@@ -13,7 +13,6 @@ except ImportError as exc:
         "Missing dependency: fonttools. Install it with `python -m pip install fonttools`."
     ) from exc
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SOURCE_FONT = PROJECT_ROOT / "scripts" / "font-source" / "NotoSansSC_VF.ttf"
 DEFAULT_OUTPUT_FONT = (
