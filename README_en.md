@@ -37,7 +37,13 @@ class MyViewModel: ViewModel() {
 
 **Note: This library is a wrapper for using other frameworks (such as Preference, MMKV, DataStore, etc.) in Compose, not a standalone data storage framework**. You can refer to [this link](https://juejin.cn/post/7144750071156834312) to understand its design concepts.
 
-<img src="screenshot.png" alt="Example" style="zoom: 15%;" />
+Online preview: <https://funnysaltyfish.github.io/ComposeDataSaver/>
+
+Click any screenshot to view the online preview.
+
+| Preview 1 | Preview 2 | Preview 3 |
+| --- | --- | --- |
+| <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/EN_1.jpg" alt="English UI Preview 1" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/EN_2.jpg" alt="English UI Preview 2" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/EN_3.jpg" alt="English UI Preview 3" width="240" /></a> |
 
 You can click [here to download the demo for experience](demo.apk) (Debug package, may be slower compared to the release package)
 
@@ -59,13 +65,15 @@ Include in project `build.gradle`
 
 ```bash
 dependencies {
-    implementation "io.github.funnysaltyfish:data-saver-core:1.2.3"
+    implementation "io.github.funnysaltyfish:data-saver-core:1.2.4"
 }
 ```
 > Note: Starting from v1.2.0, the repository has been migrated to Compose Multiplatform and released to Maven Central. The Group Id has also been changed. When upgrading from versions before v1.2.0, please remember to make the necessary changes.
 
 ## Sample Code
 The sample codes described below can be viewed in detail [here](composeApp/src/commonMain/kotlin/com/funny/data_saver/ui/ExampleComposables.kt).
+
+The demo app uses a grouped layout and includes a log sidebar, so you can inspect read/write logs and state changes more easily.
 
 ## Configuration
 
@@ -91,11 +99,7 @@ Additionally, we also provide simple implementations based on [MMKV](https://git
 
 ```bash
 // If you want to use MMKV
-The following:
-
-```bash
-// If you want to use MMKV
-implementation "io.github.funnysaltyfish:data-saver-mmkv:1.2.3"
+implementation "io.github.funnysaltyfish:data-saver-mmkv:1.2.4"
 implementation 'com.tencent:mmkv:1.2.14'
 ```
 
@@ -123,7 +127,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 
 ```bash
 // if you want to use DataStore
-implementation "io.github.funnysaltyfish:data-saver-data-store-preferences:1.2.3"
+implementation "io.github.funnysaltyfish:data-saver-data-store-preferences:1.2.4"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"
@@ -389,18 +393,35 @@ open class SavePolicy {
 }
 ```
 
-### Setting Library Parameters
+### Logging Configuration
 
-Currently, the library provides some parameters that can be set under `DataSaverConfig`.
+The library now provides leveled logging configuration under `DataSaverConfig`:
 
 ```kotlin
-/**
- * 1. DEBUG: Whether to output debug information of the library
- */
 object DataSaverConfig {
-    var DEBUG = true
+    var logLevel: DataSaverLogLevel = DataSaverLogLevel.INFO
 }
 ```
+
+Available levels:
+
+```kotlin
+enum class DataSaverLogLevel {
+    NONE,
+    ERROR,
+    WARNING,
+    INFO,
+    DEBUG,
+    VERBOSE
+}
+```
+
+The default level is `INFO`. With the default configuration, important logs such as read, restore, write, remove, and external data change events are visible out of the box.
+
+> Note:
+>
+> 1. `DataSaverLogger` has been removed. If you referenced it directly before, migrate to `Log`
+> 2. `DataSaverConfig.DEBUG` is still kept as a compatibility entry point, but `DataSaverConfig.logLevel` is now the recommended API
 
 ### Asynchronous Saving
 

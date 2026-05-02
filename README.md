@@ -38,7 +38,13 @@ class MyViewModel: ViewModel() {
 
 **注：此库是对Compose中使用其他框架（比如 Preference、MMKV、DataStore 等）的封装，不是一个单独的数据保存框架**。您可以参考[此链接](https://juejin.cn/post/7144750071156834312)以了解它的设计思想。
 
-<img src="screenshot.png" alt="Example" style="zoom: 15%;" />
+在线预览：<https://funnysaltyfish.github.io/ComposeDataSaver/>
+
+点击下方任意截图即可打开在线预览：
+
+| 预览 1 | 预览 2 | 预览 3 |
+| --- | --- | --- |
+| <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/CN_1.jpg" alt="中文界面预览 1" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/CN_2.jpg" alt="中文界面预览 2" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/CN_3.jpg" alt="中文界面预览 3" width="240" /></a> |
 
 您可以点击 [这里下载demo体验](demo.apk)（Debug 包，相较于 release 包较卡顿）
 
@@ -60,7 +66,7 @@ dependencyResolutionManagement {
 
 ```bash
 dependencies {
-    implementation "io.github.funnysaltyfish:data-saver-core:1.2.3"
+    implementation "io.github.funnysaltyfish:data-saver-core:1.2.4"
 }
 ```
 
@@ -68,6 +74,8 @@ dependencies {
 
 ## 示例代码
 以下介绍的示例代码均可在 [这里](composeApp/src/commonMain/kotlin/com/funny/data_saver/ui/ExampleComposables.kt) 查看具体实现
+
+示例应用采用分组布局，并内置了日志侧边栏，方便直接查看读写日志与状态变化。
 
 ## 配置
 
@@ -93,7 +101,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverPreferences){
 
 ```bash
 // if you want to use mmkv
-implementation "io.github.funnysaltyfish:data-saver-mmkv:1.2.3"
+implementation "io.github.funnysaltyfish:data-saver-mmkv:1.2.4"
 implementation 'com.tencent:mmkv:1.2.14'
 ```
 
@@ -121,7 +129,7 @@ CompositionLocalProvider(LocalDataSaver provides dataSaverMMKV){
 
 ```bash
 // if you want to use DataStore
-implementation "io.github.funnysaltyfish:data-saver-data-store-preferences:1.2.3"
+implementation "io.github.funnysaltyfish:data-saver-data-store-preferences:1.2.4"
 def data_store_version = "1.0.0"
 implementation "androidx.datastore:datastore:$data_store_version"
 implementation "androidx.datastore:datastore-preferences:$data_store_version"
@@ -398,18 +406,35 @@ open class SavePolicy {
 }
 ```
 
-### 设置库参数
+### 日志设置
 
-目前，库提供了一些可以设置的参数，它们位于`DataSaverConfig`下
+目前，库提供了分级日志配置，它们位于 `DataSaverConfig` 下：
 
-```Kotlin
-/**
- * 1. DEBUG: 是否输出库的调试信息
- */
+```kotlin
 object DataSaverConfig {
-    var DEBUG = true
+    var logLevel: DataSaverLogLevel = DataSaverLogLevel.INFO
 }
 ```
+
+可用级别如下：
+
+```kotlin
+enum class DataSaverLogLevel {
+    NONE,
+    ERROR,
+    WARNING,
+    INFO,
+    DEBUG,
+    VERBOSE
+}
+```
+
+默认级别为 `INFO`。在默认配置下，读取、恢复、写入、移除以及外部数据变更等关键日志都可直接看到。
+
+> 注意：
+>
+> 1. `DataSaverLogger` 已移除，如果您之前直接使用它，请改为直接调用 `Log`
+> 2. `DataSaverConfig.DEBUG` 仍保留兼容入口，但后续推荐使用 `DataSaverConfig.logLevel`
 
 ### 异步保存
 
