@@ -46,7 +46,15 @@ class MyViewModel: ViewModel() {
 | --- | --- | --- |
 | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/CN_1.jpg" alt="中文界面预览 1" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/CN_2.jpg" alt="中文界面预览 2" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/CN_3.jpg" alt="中文界面预览 3" width="240" /></a> |
 
-您可以点击 [这里下载demo体验](demo.apk)（Debug 包，相较于 release 包较卡顿）
+示例产物下载（始终指向最新正式版 Release）：
+
+- [Android Debug APK](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-android-debug.apk)
+- [macOS Desktop DMG](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-desktop-macos.dmg)
+- [Wasm 打包产物](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-wasm.zip)
+- [iOS Simulator Debug 包](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-ios-simulator-debug.zip)
+- [Latest Release 页面](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest)
+
+`iOS` 产物为未签名的 Simulator 调试包，适合在模拟器或 Xcode 中验证，不能直接作为真机 `IPA` 安装。
 
 ---
 

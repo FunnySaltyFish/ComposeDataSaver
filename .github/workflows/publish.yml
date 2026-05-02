@@ -13,9 +13,12 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+
 jobs:
-  publish:
-    name: Release build and publish
+  publish-maven:
+    name: Publish Maven artifacts
     environment: Product
     runs-on: macOS-latest
     steps:
@@ -128,10 +131,21 @@ jobs:
 
       - name: Summary
         run: |
-          echo "🎉 发布流程完成！"
+          echo "🎉 Maven 发布流程完成！"
           echo "📦 版本: ${{ steps.version.outputs.version }}"
           if [ "${{ github.event_name }}" = "release" ]; then
             echo "🔗 Release: ${{ github.event.release.html_url }}"
           else
             echo "🔧 手动运行完成"
           fi
+
+  build-release-assets:
+    name: Build release assets
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build-assets.yml
+    with:
+      upload_to_release: true
+      release_tag: ${{ github.event.release.tag_name }}
+    secrets: inherit

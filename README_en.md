@@ -45,7 +45,15 @@ Click any screenshot to view the online preview.
 | --- | --- | --- |
 | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/EN_1.jpg" alt="English UI Preview 1" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/EN_2.jpg" alt="English UI Preview 2" width="240" /></a> | <a href="https://funnysaltyfish.github.io/ComposeDataSaver/"><img src="screenshots/EN_3.jpg" alt="English UI Preview 3" width="240" /></a> |
 
-You can click [here to download the demo for experience](demo.apk) (Debug package, may be slower compared to the release package)
+Demo artifacts (always pointing to the latest stable release):
+
+- [Android Debug APK](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-android-debug.apk)
+- [macOS Desktop DMG](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-desktop-macos.dmg)
+- [Wasm bundle](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-wasm.zip)
+- [iOS Simulator Debug bundle](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest/download/compose-data-saver-ios-simulator-debug.zip)
+- [Latest Release page](https://github.com/FunnySaltyFish/ComposeDataSaver/releases/latest)
+
+The `iOS` artifact is an unsigned Simulator debug build for simulator/Xcode verification, not a device-installable `IPA`.
 
 ---
 

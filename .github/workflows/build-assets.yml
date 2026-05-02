@@ -1,0 +1,185 @@
+name: Build Assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_release:
+        description: '上传产物到指定 GitHub Release'
+        required: false
+        type: boolean
+        default: false
+      release_tag:
+        description: 'Release tag，例如 v1.2.4；仅在上传到 Release 时需要'
+        required: false
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      upload_to_release:
+        required: false
+        type: boolean
+        default: false
+      release_tag:
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-assets:
+    name: Build demo assets
+    runs-on: macOS-latest
+    env:
+      ARTIFACT_DIR: release-artifacts
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Validate release upload inputs
+        if: inputs.upload_to_release
+        run: |
+          if [ -z "${{ inputs.release_tag }}" ]; then
+            echo "release_tag 不能为空，因为 upload_to_release=true" >&2
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Yarn
+        run: |
+          echo "📦 安装 Yarn..."
+          npm install -g yarn
+          yarn --version
+
+      - name: Set version variables
+        id: version
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            VERSION="${{ inputs.release_tag }}"
+          else
+            VERSION=$(python scripts/read_version.py)
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 当前构建版本: $VERSION"
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Install WASM dependencies
+        run: |
+          echo "📦 安装 WASM 构建依赖..."
+          if [ -f "kotlin-js-store/wasm/yarn.lock" ]; then
+            cd kotlin-js-store/wasm
+            yarn install --frozen-lockfile
+            cd ../..
+            echo "✅ WASM 依赖安装完成"
+          else
+            echo "ℹ️  未找到 WASM 依赖文件，跳过安装"
+          fi
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Build Android Debug APK
+        run: ./gradlew :composeApp:assembleDebug --stacktrace
+
+      - name: Build Wasm distribution
+        run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
+
+      - name: Build Desktop DMG
+        run: ./gradlew :composeApp:packageReleaseDmg --stacktrace
+
+      - name: Build iOS simulator app
+        run: |
+          xcodebuild \
+            -project iosApp/iosApp.xcodeproj \
+            -target iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build/ios-simulator \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Collect release artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p "$ARTIFACT_DIR"
+
+          ANDROID_APK=$(find composeApp/build/outputs/apk/debug -name "*.apk" -print -quit)
+          if [ -z "$ANDROID_APK" ]; then
+            echo "Android Debug APK 未找到" >&2
+            exit 1
+          fi
+          cp "$ANDROID_APK" "$ARTIFACT_DIR/compose-data-saver-android-debug.apk"
+
+          WASM_DIR="composeApp/build/dist/wasmJs/productionExecutable"
+          if [ ! -d "$WASM_DIR" ]; then
+            echo "Wasm 产物目录未找到: $WASM_DIR" >&2
+            exit 1
+          fi
+          ditto -c -k --sequesterRsrc --keepParent "$WASM_DIR" "$ARTIFACT_DIR/compose-data-saver-wasm.zip"
+
+          DESKTOP_DMG=$(find composeApp/build/compose -name "*.dmg" -print -quit)
+          if [ -z "$DESKTOP_DMG" ]; then
+            echo "Desktop DMG 未找到" >&2
+            exit 1
+          fi
+          cp "$DESKTOP_DMG" "$ARTIFACT_DIR/compose-data-saver-desktop-macos.dmg"
+
+          IOS_APP="build/ios-simulator/Build/Products/Debug-iphonesimulator/ComposeDataSaver.app"
+          if [ ! -d "$IOS_APP" ]; then
+            echo "iOS Simulator App 未找到: $IOS_APP" >&2
+            exit 1
+          fi
+          ditto -c -k --sequesterRsrc --keepParent "$IOS_APP" "$ARTIFACT_DIR/compose-data-saver-ios-simulator-debug.zip"
+
+          ls -lah "$ARTIFACT_DIR"
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-data-saver-release-assets
+          path: ${{ env.ARTIFACT_DIR }}/*
+          if-no-files-found: error
+
+      - name: Upload assets to GitHub Release
+        if: inputs.upload_to_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          files: ${{ env.ARTIFACT_DIR }}/*
+          fail_on_unmatched_files: true
+          overwrite_files: true
+
+      - name: Summary
+        run: |
+          echo "🎉 产物构建完成！"
+          echo "📦 版本: ${{ steps.version.outputs.version }}"
+          echo "📱 Android Debug APK: compose-data-saver-android-debug.apk"
+          echo "🧩 Wasm: compose-data-saver-wasm.zip"
+          echo "🖥️ Desktop (macOS): compose-data-saver-desktop-macos.dmg"
+          echo "📦 iOS Simulator Debug: compose-data-saver-ios-simulator-debug.zip"
+          if [ "${{ inputs.upload_to_release }}" = "true" ]; then
+            echo "🔗 Release Tag: ${{ inputs.release_tag }}"
+          else
+            echo "🔧 当前为调试构建，产物已上传为 workflow artifact"
+          fi
