@@ -7,14 +7,19 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.core.DataSaverLocalStorage
+import composedatasaver.composeapp.generated.resources.Res
+import composedatasaver.composeapp.generated.resources.saving_parcelable_title
+import composedatasaver.composeapp.generated.resources.saving_parcelable_unsupported_description
+import composedatasaver.composeapp.generated.resources.saving_parcelable_unsupported_message
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 actual fun ParcelableExample() {
     ExampleCard(
-        title = "Saving Parcelable",
-        description = "当前平台不提供 Parcelable 持久化示例。"
+        title = stringResource(Res.string.saving_parcelable_title),
+        description = stringResource(Res.string.saving_parcelable_unsupported_description)
     ) {
-        Text("如需体验 Parcelable 持久化，请在 Android 端运行。")
+        Text(stringResource(Res.string.saving_parcelable_unsupported_message))
     }
 }
 

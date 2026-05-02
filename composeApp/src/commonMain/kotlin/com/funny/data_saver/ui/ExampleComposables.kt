@@ -1,8 +1,8 @@
 package com.funny.data_saver.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -25,8 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -76,27 +76,124 @@ import com.funny.data_saver.core.rememberDataSaverState
 import com.funny.data_saver.kmp.IO
 import com.funny.data_saver.kmp.Log
 import com.funny.data_saver.kmp.viewModel
+import composedatasaver.composeapp.generated.resources.Res
+import composedatasaver.composeapp.generated.resources.action_add
+import composedatasaver.composeapp.generated.resources.action_add_id
+import composedatasaver.composeapp.generated.resources.action_change_local_data
+import composedatasaver.composeapp.generated.resources.action_clear
+import composedatasaver.composeapp.generated.resources.action_close
+import composedatasaver.composeapp.generated.resources.action_not_null
+import composedatasaver.composeapp.generated.resources.action_open
+import composedatasaver.composeapp.generated.resources.action_open_dialog
+import composedatasaver.composeapp.generated.resources.action_randomly_change
+import composedatasaver.composeapp.generated.resources.action_remove
+import composedatasaver.composeapp.generated.resources.action_set_not_null
+import composedatasaver.composeapp.generated.resources.action_set_null
+import composedatasaver.composeapp.generated.resources.action_submit_with_value
+import composedatasaver.composeapp.generated.resources.action_test_debug
+import composedatasaver.composeapp.generated.resources.action_test_info
+import composedatasaver.composeapp.generated.resources.add_bean_id
+import composedatasaver.composeapp.generated.resources.current_boolean_value
+import composedatasaver.composeapp.generated.resources.custom_scope_view_model_description
+import composedatasaver.composeapp.generated.resources.custom_scope_view_model_title
+import composedatasaver.composeapp.generated.resources.custom_type_converter_description
+import composedatasaver.composeapp.generated.resources.custom_type_converter_title
+import composedatasaver.composeapp.generated.resources.dialog_value_label
+import composedatasaver.composeapp.generated.resources.example_bean_default_label
+import composedatasaver.composeapp.generated.resources.example_string_initial_value
+import composedatasaver.composeapp.generated.resources.hero_description
+import composedatasaver.composeapp.generated.resources.hero_log_drawer_description
+import composedatasaver.composeapp.generated.resources.hero_log_drawer_title
+import composedatasaver.composeapp.generated.resources.hero_preview_mode_notice
+import composedatasaver.composeapp.generated.resources.hero_title
+import composedatasaver.composeapp.generated.resources.list_example_description
+import composedatasaver.composeapp.generated.resources.list_example_item_name
+import composedatasaver.composeapp.generated.resources.list_example_title
+import composedatasaver.composeapp.generated.resources.log_console_empty_text
+import composedatasaver.composeapp.generated.resources.log_console_empty_text_default
+import composedatasaver.composeapp.generated.resources.log_drawer_description
+import composedatasaver.composeapp.generated.resources.log_drawer_title
+import composedatasaver.composeapp.generated.resources.log_level_debug
+import composedatasaver.composeapp.generated.resources.log_level_error
+import composedatasaver.composeapp.generated.resources.log_level_info
+import composedatasaver.composeapp.generated.resources.log_level_label
+import composedatasaver.composeapp.generated.resources.log_level_off
+import composedatasaver.composeapp.generated.resources.log_level_verbose
+import composedatasaver.composeapp.generated.resources.log_level_warn
+import composedatasaver.composeapp.generated.resources.nullable_bean_description
+import composedatasaver.composeapp.generated.resources.nullable_bean_not_null_label
+import composedatasaver.composeapp.generated.resources.nullable_bean_title
+import composedatasaver.composeapp.generated.resources.password_label
+import composedatasaver.composeapp.generated.resources.save_when_disposed_description
+import composedatasaver.composeapp.generated.resources.save_when_disposed_dialog_title
+import composedatasaver.composeapp.generated.resources.save_when_disposed_initial_value
+import composedatasaver.composeapp.generated.resources.saving_boolean_description
+import composedatasaver.composeapp.generated.resources.saving_boolean_title
+import composedatasaver.composeapp.generated.resources.saving_custom_bean_description
+import composedatasaver.composeapp.generated.resources.saving_custom_bean_title
+import composedatasaver.composeapp.generated.resources.saving_sealed_class_description
+import composedatasaver.composeapp.generated.resources.saving_sealed_class_title
+import composedatasaver.composeapp.generated.resources.saving_string_description
+import composedatasaver.composeapp.generated.resources.saving_string_title
+import composedatasaver.composeapp.generated.resources.section_basic_states_description
+import composedatasaver.composeapp.generated.resources.section_basic_states_title
+import composedatasaver.composeapp.generated.resources.section_behavior_description
+import composedatasaver.composeapp.generated.resources.section_behavior_title
+import composedatasaver.composeapp.generated.resources.section_collections_description
+import composedatasaver.composeapp.generated.resources.section_collections_title
+import composedatasaver.composeapp.generated.resources.section_scope_description
+import composedatasaver.composeapp.generated.resources.section_scope_title
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_bean_label
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_description
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_list_added_label
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_list_initial_label
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_new_value
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_title
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_value_1
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_value_2
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_var1
+import composedatasaver.composeapp.generated.resources.sense_external_data_change_var2
+import composedatasaver.composeapp.generated.resources.string_value_label
+import composedatasaver.composeapp.generated.resources.test_debug_log_message
+import composedatasaver.composeapp.generated.resources.test_info_log_message
+import composedatasaver.composeapp.generated.resources.theme_default
+import composedatasaver.composeapp.generated.resources.theme_dynamic
+import composedatasaver.composeapp.generated.resources.theme_label
+import composedatasaver.composeapp.generated.resources.time_consuming_log_finish
+import composedatasaver.composeapp.generated.resources.time_consuming_log_start
+import composedatasaver.composeapp.generated.resources.time_consuming_save_description
+import composedatasaver.composeapp.generated.resources.time_consuming_save_title
+import composedatasaver.composeapp.generated.resources.time_consuming_wait_message
+import composedatasaver.composeapp.generated.resources.username_label
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import moe.tlaster.precompose.navigation.BackHandler
+import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
 import kotlin.reflect.typeOf
 
 @Serializable
 data class ExampleBean(var id: Int, val label: String)
 
-val EmptyBean = ExampleBean(233, "FunnySaltyFish")
+private const val DefaultExampleBeanId = 233
 
 private data class ExampleLogItem(
     val entry: DataSaverLogEntry,
     val timeText: String
 )
+
+private fun String.replaceIndexedArgs(vararg values: Any?): String {
+    var result = this
+    values.forEachIndexed { index, value ->
+        result = result.replace("%${index + 1}\$s", value.toString())
+    }
+    return result
+}
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
@@ -104,9 +201,13 @@ fun ExampleComposable() {
     val isInspectMode = LocalInspectionMode.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val drawerScope = rememberCoroutineScope()
+    val defaultBean = ExampleBean(
+        id = DefaultExampleBeanId,
+        label = stringResource(Res.string.example_bean_default_label)
+    )
     var stringExample by rememberDataSaverState(
         KEY_STRING_EXAMPLE,
-        "FunnySaltyFish, tap to input",
+        stringResource(Res.string.example_string_initial_value),
         savePolicy = SavePolicy.IMMEDIATELY,
         async = true
     )
@@ -116,7 +217,7 @@ fun ExampleComposable() {
     )
     var beanExample by rememberDataSaverState(
         key = KEY_BEAN_EXAMPLE,
-        initialValue = EmptyBean
+        initialValue = defaultBean
     )
     var logLevel by remember { mutableStateOf(DataSaverConfig.logLevel) }
     val logs = remember { mutableStateListOf<ExampleLogItem>() }
@@ -163,24 +264,24 @@ fun ExampleComposable() {
             )
 
             SectionCard(
-                title = "Basic States",
-                description = "展示常见的 String、Boolean、Bean 与 Parcelable 保存方式。"
+                title = stringResource(Res.string.section_basic_states_title),
+                description = stringResource(Res.string.section_basic_states_description)
             ) {
                 ExampleCard(
-                    title = "Saving String",
-                    description = "输入内容后会立即保存。"
+                    title = stringResource(Res.string.saving_string_title),
+                    description = stringResource(Res.string.saving_string_description)
                 ) {
                     OutlinedTextField(
                         value = stringExample,
                         onValueChange = { stringExample = it },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("String Value") }
+                        label = { Text(stringResource(Res.string.string_value_label)) }
                     )
                 }
 
                 ExampleCard(
-                    title = "Saving Boolean",
-                    description = "切换状态后自动持久化。"
+                    title = stringResource(Res.string.saving_boolean_title),
+                    description = stringResource(Res.string.saving_boolean_description)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -188,7 +289,10 @@ fun ExampleComposable() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = if (booleanExample) "当前值：true" else "当前值：false",
+                            text = stringResource(
+                                Res.string.current_boolean_value,
+                                booleanExample.toString()
+                            ),
                             fontSize = 15.sp
                         )
                         Switch(
@@ -199,8 +303,8 @@ fun ExampleComposable() {
                 }
 
                 ExampleCard(
-                    title = "Saving Custom Bean",
-                    description = "通过类型转换器保存自定义对象。"
+                    title = stringResource(Res.string.saving_custom_bean_title),
+                    description = stringResource(Res.string.saving_custom_bean_description)
                 ) {
                     Text(
                         text = beanExample.toString(),
@@ -208,7 +312,7 @@ fun ExampleComposable() {
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Button(onClick = { beanExample = beanExample.copy(id = beanExample.id + 1) }) {
-                        Text(text = "Add bean id")
+                        Text(text = stringResource(Res.string.add_bean_id))
                     }
                 }
 
@@ -216,8 +320,8 @@ fun ExampleComposable() {
             }
 
             SectionCard(
-                title = "Collections And Types",
-                description = "集中查看集合、可空值、自定义转换器和密封类的保存效果。"
+                title = stringResource(Res.string.section_collections_title),
+                description = stringResource(Res.string.section_collections_description)
             ) {
                 ListExample()
                 NullableExample()
@@ -226,16 +330,16 @@ fun ExampleComposable() {
             }
 
             SectionCard(
-                title = "Behavior Samples",
-                description = "包含外部数据变化感知和页面销毁时保存等行为。"
+                title = stringResource(Res.string.section_behavior_title),
+                description = stringResource(Res.string.section_behavior_description)
             ) {
                 SenseExternalDataChangeExample()
                 SaveWhenDisposedExample()
             }
 
             SectionCard(
-                title = "Scope And Async",
-                description = "包含 ViewModel、自定义协程域和耗时任务示例。"
+                title = stringResource(Res.string.section_scope_title),
+                description = stringResource(Res.string.section_scope_description)
             ) {
                 CustomCoroutineScopeAndViewModelSample()
                 TimeConsumingJobExample()
@@ -249,17 +353,29 @@ expect fun ParcelableExample()
 
 @Composable
 private fun ListExample() {
+    val listItemNameTemplate = stringResource(Res.string.list_example_item_name)
+    val addText = stringResource(Res.string.action_add)
+    val removeText = stringResource(Res.string.action_remove)
     var listExample: List<ExampleBean> by rememberDataSaverState(
         key = "key_list_example",
         initialValue = listOf(
-            EmptyBean.copy(label = "Name 1"),
-            EmptyBean.copy(label = "Name 2"),
-            EmptyBean.copy(label = "Name 3")
+            ExampleBean(
+                id = DefaultExampleBeanId,
+                label = listItemNameTemplate.replaceIndexedArgs(1)
+            ),
+            ExampleBean(
+                id = DefaultExampleBeanId,
+                label = listItemNameTemplate.replaceIndexedArgs(2)
+            ),
+            ExampleBean(
+                id = DefaultExampleBeanId,
+                label = listItemNameTemplate.replaceIndexedArgs(3)
+            )
         )
     )
     ExampleCard(
-        title = "List Example",
-        description = "列表内容的增删会被完整持久化。"
+        title = stringResource(Res.string.list_example_title),
+        description = stringResource(Res.string.list_example_description)
     ) {
         LazyColumn(Modifier.heightIn(min = 0.dp, max = 220.dp)) {
             items(listExample) { item ->
@@ -273,16 +389,19 @@ private fun ListExample() {
         Spacer(modifier = Modifier.height(6.dp))
         ActionFlowRow {
             Button(onClick = {
-                listExample += EmptyBean.copy(label = "Name ${listExample.size + 1}")
+                listExample += ExampleBean(
+                    id = DefaultExampleBeanId,
+                    label = listItemNameTemplate.replaceIndexedArgs(listExample.size + 1)
+                )
             }) {
-                Text(text = "Add")
+                Text(text = addText)
             }
             Button(onClick = {
                 if (listExample.isNotEmpty()) {
                     listExample = listExample.dropLast(1)
                 }
             }) {
-                Text(text = "Remove")
+                Text(text = removeText)
             }
         }
     }
@@ -295,11 +414,11 @@ private fun SaveWhenDisposedExample() {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text(text = "Save When Disposed") },
+            title = { Text(text = stringResource(Res.string.save_when_disposed_dialog_title)) },
             text = {
                 var stringExample2 by rememberDataSaverState(
                     key = Constant.KEY_STRING_EXAMPLE_2,
-                    initialValue = "this one will be saved only when disposed",
+                    initialValue = stringResource(Res.string.save_when_disposed_initial_value),
                     savePolicy = SavePolicy.DISPOSED,
                     async = false
                 )
@@ -307,48 +426,52 @@ private fun SaveWhenDisposedExample() {
                     value = stringExample2,
                     onValueChange = { stringExample2 = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Dialog Value") }
+                    label = { Text(stringResource(Res.string.dialog_value_label)) }
                 )
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text(text = "Close")
+                    Text(text = stringResource(Res.string.action_close))
                 }
             }
         )
     }
 
     ExampleCard(
-        title = "Save When Disposed",
-        description = "对话框关闭时才触发保存，适合批量编辑后一次落盘。"
+        title = stringResource(Res.string.save_when_disposed_dialog_title),
+        description = stringResource(Res.string.save_when_disposed_description)
     ) {
         Button(onClick = { showDialog = true }) {
-            Text(text = "Open Dialog")
+            Text(text = stringResource(Res.string.action_open_dialog))
         }
     }
 }
 
 @Composable
 private fun NullableExample() {
+    val notNullLabel = stringResource(Res.string.nullable_bean_not_null_label)
     val nullableCustomBeanState: DataSaverMutableState<ExampleBean?> =
         rememberDataSaverState(key = "nullable_bean", initialValue = null)
 
     ExampleCard(
-        title = "Nullable Bean",
-        description = "可空对象同样可以保存和恢复。"
+        title = stringResource(Res.string.nullable_bean_title),
+        description = stringResource(Res.string.nullable_bean_description)
     ) {
         Text(text = nullableCustomBeanState.value.toString(), fontSize = 15.sp)
         Spacer(modifier = Modifier.height(6.dp))
         ActionFlowRow {
             Button(onClick = {
-                nullableCustomBeanState.value = ExampleBean(id = 100, label = "I'm not null")
+                nullableCustomBeanState.value = ExampleBean(
+                    id = 100,
+                    label = notNullLabel
+                )
             }) {
-                Text(text = "Set Not Null")
+                Text(text = stringResource(Res.string.action_set_not_null))
             }
             Button(onClick = {
                 nullableCustomBeanState.value = null
             }) {
-                Text(text = "Set Null")
+                Text(text = stringResource(Res.string.action_set_null))
             }
         }
     }
@@ -358,32 +481,45 @@ private fun NullableExample() {
 @Composable
 private fun SenseExternalDataChangeExample() {
     val dataSaver = getSensorExternalDataSaver()
+    val externalValueTemplate = stringResource(Res.string.sense_external_data_change_new_value)
+    val beanLabel = stringResource(Res.string.sense_external_data_change_bean_label)
+    val initialListLabel = stringResource(Res.string.sense_external_data_change_list_initial_label)
+    val addedListLabel = stringResource(Res.string.sense_external_data_change_list_added_label)
 
     ExampleCard(
-        title = "Sense External Data Change",
-        description = "直接改底层存储，界面会感知到变化并同步更新。"
+        title = stringResource(Res.string.sense_external_data_change_title),
+        description = stringResource(Res.string.sense_external_data_change_description)
     ) {
         CompositionLocalProvider(LocalDataSaver provides dataSaver) {
             val key = "sense_external_data_change_example"
             val stringExample by rememberDataSaverState(
                 key = key,
-                initialValue = "Hello World(1)",
+                initialValue = stringResource(Res.string.sense_external_data_change_value_1),
                 senseExternalDataChange = true
             )
             val stringExample2 by rememberDataSaverState(
                 key = key,
-                initialValue = "Hello World(2)",
+                initialValue = stringResource(Res.string.sense_external_data_change_value_2),
                 senseExternalDataChange = true
             )
             val dataSaverInterface = getLocalDataSaverInterface()
 
-            Text(text = "var1: $stringExample", fontSize = 15.sp)
-            Text(text = "var2: $stringExample2", fontSize = 15.sp)
+            Text(
+                text = stringResource(Res.string.sense_external_data_change_var1, stringExample),
+                fontSize = 15.sp
+            )
+            Text(
+                text = stringResource(Res.string.sense_external_data_change_var2, stringExample2),
+                fontSize = 15.sp
+            )
             Spacer(modifier = Modifier.height(6.dp))
             Button(onClick = {
-                dataSaverInterface.saveData(key, "Hello World ${Random.nextInt()}")
+                dataSaverInterface.saveData(
+                    key,
+                    externalValueTemplate.replaceIndexedArgs(Random.nextInt())
+                )
             }) {
-                Text(text = "Change Local Data")
+                Text(text = stringResource(Res.string.action_change_local_data))
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
@@ -402,19 +538,24 @@ private fun SenseExternalDataChangeExample() {
             Spacer(modifier = Modifier.height(6.dp))
             ActionFlowRow {
                 Button(onClick = {
-                    saveBean(ExampleBean(0, "not null"))
+                    saveBean(
+                        ExampleBean(
+                            0,
+                            beanLabel
+                        )
+                    )
                 }) {
-                    Text(text = "Not Null")
+                    Text(text = stringResource(Res.string.action_not_null))
                 }
                 Button(onClick = {
                     bean?.copy(id = (bean?.id ?: 0) + 1)?.let(saveBean)
                 }) {
-                    Text(text = "Add Id")
+                    Text(text = stringResource(Res.string.action_add_id))
                 }
                 Button(onClick = {
                     saveBean(null)
                 }) {
-                    Text(text = "Set Null")
+                    Text(text = stringResource(Res.string.action_set_null))
                 }
             }
 
@@ -423,7 +564,12 @@ private fun SenseExternalDataChangeExample() {
             val keyList = "sense_external_data_change_example_list"
             val list by rememberDataSaverState(
                 key = keyList,
-                initialValue = listOf(ExampleBean(0, "initial")),
+                initialValue = listOf(
+                    ExampleBean(
+                        0,
+                        initialListLabel
+                    )
+                ),
                 senseExternalDataChange = true
             )
 
@@ -439,10 +585,13 @@ private fun SenseExternalDataChangeExample() {
             Spacer(modifier = Modifier.height(6.dp))
             ActionFlowRow {
                 Button(onClick = {
-                    val updated = list + ExampleBean(list.size, "add")
+                    val updated = list + ExampleBean(
+                        list.size,
+                        addedListLabel
+                    )
                     dataSaverInterface.saveData(keyList, Json.encodeToString(updated))
                 }) {
-                    Text(text = "Add")
+                    Text(text = stringResource(Res.string.action_add))
                 }
                 Button(onClick = {
                     if (list.isNotEmpty()) {
@@ -450,7 +599,7 @@ private fun SenseExternalDataChangeExample() {
                         dataSaverInterface.saveData(keyList, Json.encodeToString(updated))
                     }
                 }) {
-                    Text(text = "Remove")
+                    Text(text = stringResource(Res.string.action_remove))
                 }
             }
         }
@@ -474,8 +623,8 @@ private fun CustomTypeConverterExample() {
     )
 
     ExampleCard(
-        title = "Custom Type Converter",
-        description = "为非默认支持的类型自定义序列化逻辑。"
+        title = stringResource(Res.string.custom_type_converter_title),
+        description = stringResource(Res.string.custom_type_converter_description)
     ) {
         Text(
             text = array.joinToString(", ", prefix = "[", postfix = "]"),
@@ -485,7 +634,7 @@ private fun CustomTypeConverterExample() {
         Button(onClick = {
             array = IntArray(5) { Random.nextInt(0, 99) }
         }) {
-            Text("Randomly Change")
+            Text(stringResource(Res.string.action_randomly_change))
         }
     }
 }
@@ -498,8 +647,8 @@ private fun CustomSealedClassExample() {
     )
 
     ExampleCard(
-        title = "Saving Sealed Class",
-        description = "密封类也可以通过转换器稳定地保存。"
+        title = stringResource(Res.string.saving_sealed_class_title),
+        description = stringResource(Res.string.saving_sealed_class_description)
     ) {
         Surface(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
@@ -507,19 +656,19 @@ private fun CustomSealedClassExample() {
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
                 Text(
-                    text = "Theme",
+                    text = stringResource(Res.string.theme_label),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 RadioTile(
-                    text = "Default",
+                    text = stringResource(Res.string.theme_default),
                     selected = themeType == ThemeType.StaticDefault
                 ) {
                     themeType = ThemeType.StaticDefault
                 }
                 RadioTile(
-                    text = "Dynamic",
+                    text = stringResource(Res.string.theme_dynamic),
                     selected = themeType == ThemeType.DynamicNative
                 ) {
                     themeType = ThemeType.DynamicNative
@@ -534,8 +683,8 @@ private fun CustomCoroutineScopeAndViewModelSample() {
     val vm: MainViewModel = viewModel(MainViewModel::class) { MainViewModel() }
 
     ExampleCard(
-        title = "Custom CoroutineScope And ViewModel",
-        description = "状态创建在 ViewModel 内，协程也绑定到 ViewModel 生命周期。"
+        title = stringResource(Res.string.custom_scope_view_model_title),
+        description = stringResource(Res.string.custom_scope_view_model_description)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -545,13 +694,13 @@ private fun CustomCoroutineScopeAndViewModelSample() {
                 value = vm.username,
                 onValueChange = { vm.username = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = "Username") }
+                label = { Text(text = stringResource(Res.string.username_label)) }
             )
             OutlinedTextField(
                 value = vm.password,
                 onValueChange = { vm.password = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = "Password") }
+                label = { Text(text = stringResource(Res.string.password_label)) }
             )
         }
     }
@@ -559,20 +708,31 @@ private fun CustomCoroutineScopeAndViewModelSample() {
 
 @Composable
 private fun TimeConsumingJobExample() {
-    class TimeConsumingDataSaver : DataSaverInMemory() {
+    val startLogMessage = stringResource(Res.string.time_consuming_log_start)
+    val finishLogTemplate = stringResource(Res.string.time_consuming_log_finish)
+
+    class TimeConsumingDataSaver(
+        private val startLogMessage: String,
+        private val finishLogTemplate: String
+    ) : DataSaverInMemory() {
         override suspend fun <T> saveDataAsync(key: String, data: T) {
-            Log.i("ExampleComposable", "start to save data, it takes 5s...")
+            Log.i("ExampleComposable", startLogMessage)
             delay(5000)
             super.saveDataAsync(key, data)
-            Log.i("ExampleComposable", "finish saving data. key=$key, data=$data")
+            Log.i(
+                "ExampleComposable",
+                finishLogTemplate.replaceIndexedArgs(key, data.toString())
+            )
         }
     }
 
     ExampleCard(
-        title = "Time Consuming Save",
-        description = "模拟慢速存储，保存未完成前会拦截返回动作。"
+        title = stringResource(Res.string.time_consuming_save_title),
+        description = stringResource(Res.string.time_consuming_save_description)
     ) {
-        CompositionLocalProvider(LocalDataSaver provides TimeConsumingDataSaver()) {
+        CompositionLocalProvider(
+            LocalDataSaver provides TimeConsumingDataSaver(startLogMessage, finishLogTemplate)
+        ) {
             val scope = remember { CoroutineScope(Dispatchers.IO) }
             val state = rememberDataSaverState(
                 key = "time_consuming_job",
@@ -585,7 +745,12 @@ private fun TimeConsumingJobExample() {
                     state.value = state.value + 1
                 }
             }) {
-                Text(text = "Submit (curr value: ${state.value})")
+                Text(
+                    text = stringResource(
+                        Res.string.action_submit_with_value,
+                        state.value.toString()
+                    )
+                )
             }
 
             var showDialog by remember { mutableStateOf(false) }
@@ -594,11 +759,11 @@ private fun TimeConsumingJobExample() {
                     onDismissRequest = { showDialog = false },
                     confirmButton = {
                         Button(onClick = { showDialog = false }) {
-                            Text(text = "Close")
+                            Text(text = stringResource(Res.string.action_close))
                         }
                     },
                     text = {
-                        Text(text = "Current job is not finished, please wait until it is finished!")
+                        Text(text = stringResource(Res.string.time_consuming_wait_message))
                     }
                 )
             }
@@ -675,12 +840,12 @@ private fun HeroCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "ComposeDataSaver Examples",
+                text = stringResource(Res.string.hero_title),
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "集中展示 ComposeDataSaver 的常见保存场景，可直接交互查看效果。",
+                text = stringResource(Res.string.hero_description),
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
@@ -700,12 +865,12 @@ private fun HeroCard(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "日志抽屉",
+                            text = stringResource(Res.string.hero_log_drawer_title),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "点这里打开，或从页面左侧向右滑动查看日志。",
+                            text = stringResource(Res.string.hero_log_drawer_description),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
                         )
@@ -725,13 +890,13 @@ private fun HeroCard(
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     TextButton(onClick = onOpenLogs) {
-                        Text("打开")
+                        Text(stringResource(Res.string.action_open))
                     }
                 }
             }
             if (isInspectMode) {
                 Text(
-                    text = "当前为预览模式，使用内存存储。",
+                    text = stringResource(Res.string.hero_preview_mode_notice),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -779,6 +944,8 @@ private fun LogDrawerContent(
     logLevel: DataSaverLogLevel,
     onLogLevelChange: (DataSaverLogLevel) -> Unit
 ) {
+    val debugLogMessage = stringResource(Res.string.test_debug_log_message)
+    val infoLogMessage = stringResource(Res.string.test_info_log_message)
     ModalDrawerSheet(
         modifier = Modifier
             .fillMaxHeight()
@@ -802,18 +969,18 @@ private fun LogDrawerContent(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        text = "运行日志",
+                        text = stringResource(Res.string.log_drawer_title),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "查看读写日志和示例中的主动日志。",
+                        text = stringResource(Res.string.log_drawer_description),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
                 TextButton(onClick = onClose) {
-                    Text("关闭")
+                    Text(stringResource(Res.string.action_close))
                 }
             }
 
@@ -824,16 +991,20 @@ private fun LogDrawerContent(
 
             ActionFlowRow {
                 SidebarActionButton(
-                    text = "清空",
+                    text = stringResource(Res.string.action_clear),
                     onClick = onClearLogs
                 )
                 SidebarActionButton(
-                    text = "测试 Debug",
-                    onClick = { Log.d("ExampleComposable", "测试 Debug 日志") }
+                    text = stringResource(Res.string.action_test_debug),
+                    onClick = {
+                        Log.d("ExampleComposable", debugLogMessage)
+                    }
                 )
                 SidebarActionButton(
-                    text = "测试 Info",
-                    onClick = { Log.i("ExampleComposable", "测试 Info 日志") }
+                    text = stringResource(Res.string.action_test_info),
+                    onClick = {
+                        Log.i("ExampleComposable", infoLogMessage)
+                    }
                 )
             }
 
@@ -842,7 +1013,7 @@ private fun LogDrawerContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                emptyText = "暂时没有日志，操作主页面示例后可在这里查看。"
+                emptyText = stringResource(Res.string.log_console_empty_text)
             )
         }
     }
@@ -880,7 +1051,7 @@ private fun LogLevelSelector(
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "日志级别：${selectedLevel.displayName()}",
+            text = stringResource(Res.string.log_level_label, selectedLevel.displayName()),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
         )
@@ -931,8 +1102,9 @@ private fun LogLevelSelector(
 private fun LogConsole(
     logs: List<ExampleLogItem>,
     modifier: Modifier = Modifier,
-    emptyText: String = "暂无日志。操作左侧示例后可在这里查看。"
+    emptyText: String? = null
 ) {
+    val resolvedEmptyText = emptyText ?: stringResource(Res.string.log_console_empty_text_default)
     Surface(
         modifier = modifier,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
@@ -940,7 +1112,7 @@ private fun LogConsole(
     ) {
         if (logs.isEmpty()) {
             Text(
-                text = emptyText,
+                text = resolvedEmptyText,
                 modifier = Modifier.padding(16.dp),
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
@@ -990,13 +1162,14 @@ private fun RadioTile(
     }
 }
 
+@Composable
 private fun DataSaverLogLevel.displayName(): String = when (this) {
-    DataSaverLogLevel.NONE -> "Off"
-    DataSaverLogLevel.ERROR -> "Error"
-    DataSaverLogLevel.WARNING -> "Warn"
-    DataSaverLogLevel.INFO -> "Info"
-    DataSaverLogLevel.DEBUG -> "Debug"
-    DataSaverLogLevel.VERBOSE -> "Verbose"
+    DataSaverLogLevel.NONE -> stringResource(Res.string.log_level_off)
+    DataSaverLogLevel.ERROR -> stringResource(Res.string.log_level_error)
+    DataSaverLogLevel.WARNING -> stringResource(Res.string.log_level_warn)
+    DataSaverLogLevel.INFO -> stringResource(Res.string.log_level_info)
+    DataSaverLogLevel.DEBUG -> stringResource(Res.string.log_level_debug)
+    DataSaverLogLevel.VERBOSE -> stringResource(Res.string.log_level_verbose)
 }
 
 @Composable

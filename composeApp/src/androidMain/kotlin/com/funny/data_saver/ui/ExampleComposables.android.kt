@@ -11,24 +11,33 @@ import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.core.rememberDataSaverState
 import com.funny.data_saver_mmkv.DataSaverMMKV
 import com.tencent.mmkv.MMKV
+import composedatasaver.composeapp.generated.resources.Res
+import composedatasaver.composeapp.generated.resources.action_add_age
+import composedatasaver.composeapp.generated.resources.parcelable_name
+import composedatasaver.composeapp.generated.resources.saving_parcelable_android_description
+import composedatasaver.composeapp.generated.resources.saving_parcelable_title
+import org.jetbrains.compose.resources.stringResource
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
 actual fun ParcelableExample() {
     ExampleCard(
-        title = "Saving Parcelable",
-        description = "基础实现里只有 MMKV 默认支持 Parcelable。"
+        title = stringResource(Res.string.saving_parcelable_title),
+        description = stringResource(Res.string.saving_parcelable_android_description)
     ) {
         var parcelableExample by rememberDataSaverState(
             key = "parcelable_example",
-            initialValue = ExampleParcelable("FunnySaltyFish", 20)
+            initialValue = ExampleParcelable(
+                stringResource(Res.string.parcelable_name),
+                20
+            )
         )
         Text(parcelableExample.toString())
         Button(onClick = {
             parcelableExample = parcelableExample.copy(age = parcelableExample.age + 1)
         }) {
-            Text(text = "Add age by 1")
+            Text(text = stringResource(Res.string.action_add_age))
         }
     }
 }
