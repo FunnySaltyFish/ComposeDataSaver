@@ -102,6 +102,9 @@ def subset_font(source_font: Path, output_font: Path, text: str) -> None:
     subsetter.subset(font)
 
     output_font.parent.mkdir(parents=True, exist_ok=True)
+    # 删除原来的，如果有
+    if output_font.exists():
+        output_font.unlink()
     font.save(output_font)
 
 
