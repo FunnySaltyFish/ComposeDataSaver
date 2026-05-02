@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
+import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 /**
@@ -44,13 +45,19 @@ class DataSaverMutableState<T>(
     private val typeConverter: ITypeConverter? = null,
     private val savePolicy: SavePolicy = SavePolicy.IMMEDIATELY,
     private val async: Boolean = false,
-    private val coroutineScope: CoroutineScope? = null
+    private val coroutineScope: CoroutineScope? = null,
+    private val valueType: KType? = null
 ) : MutableState<T> {
     private val state = mutableStateOf(initialValue)
     // current data saving job
     var job: Job? by mutableStateOf(null)
     private val scope by lazy(LazyThreadSafetyMode.PUBLICATION) {
         coroutineScope ?: CoroutineScope(Dispatchers.IO)
+    }
+    private val declaredTypeSaver by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        valueType?.let { type ->
+            typeConverter?.asSaver(type) ?: DataSaverConverter.findSaver(type)
+        }
     }
 
     override var value: T
@@ -80,7 +87,7 @@ class DataSaverMutableState<T>(
         if (async) {
             job?.cancel()
             job = scope.launch(Dispatchers.IO) {
-                val typeConverter = typeConverter?.asSaver(value) ?: findSaver(value)
+                val typeConverter = resolveSaver(value)
                 if (typeConverter != null) {
                     val convertedData = typeConverter(value)
                     log("saveConvertedData(async: true): $key -> $value(as $convertedData)")
@@ -91,7 +98,7 @@ class DataSaverMutableState<T>(
                 }
             }
         } else {
-            val typeConverter = typeConverter?.asSaver(value) ?: findSaver(value)
+            val typeConverter = resolveSaver(value)
             if (typeConverter != null) {
                 val convertedData = typeConverter(value)
                 log("saveConvertedData(async: false): $key -> $value(as $convertedData)")
@@ -101,6 +108,12 @@ class DataSaverMutableState<T>(
                 dataSaverInterface.saveData(key, value)
             }
         }
+    }
+
+    private fun resolveSaver(value: T): ((Any?) -> String)? {
+        return declaredTypeSaver
+            ?: typeConverter?.asSaver(valueType, value)
+            ?: findSaver(valueType, value)
     }
 
     /**
@@ -180,11 +193,11 @@ inline fun <reified T> rememberDataSaverState(
     coroutineScope: CoroutineScope? = null
 ): DataSaverMutableState<T> {
     val saverInterface = getLocalDataSaverInterface()
+    val valueType = typeOf<T>()
     var state: DataSaverMutableState<T>? = null
     val restorer by remember(initialValue, typeConverter) {
         lazy {
-            typeConverter?.asRestorer(initialValue)
-                ?: DataSaverConverter.findRestorer<T>(initialValue)
+            resolveRestorer(typeConverter, valueType, initialValue)
         }
     }
 
@@ -258,23 +271,51 @@ inline fun <reified T> mutableDataSaverStateOf(
     async: Boolean = true,
     coroutineScope: CoroutineScope? = null
 ): DataSaverMutableState<T> {
-    val data = try {
-        if (!dataSaverInterface.contains(key)) initialValue
-        else dataSaverInterface.readData(key, initialValue)
-    } catch (e: Exception) {
-        val restore = typeConverter?.asRestorer(initialValue) ?: DataSaverConverter.findRestorer<T>(initialValue)
-        restore ?: throw e
-        runCatching {
-            restore(dataSaverInterface.readData(key, "")) as T
+    val valueType = typeOf<T>()
+    val restorer = resolveRestorer(typeConverter, valueType, initialValue)
+    val data = when {
+        !dataSaverInterface.contains(key) -> initialValue
+        restorer != null -> runCatching {
+            restorer(dataSaverInterface.readData(key, "")) as T
+        }.recoverCatching {
+            dataSaverInterface.readData(key, initialValue)
         }.onFailure {
             DataSaverLogger.e("error while restoring data(key=$key), set to default. StackTrace:\n${it.stackTraceToString()}")
         }.getOrDefault(initialValue)
+        else -> dataSaverInterface.readData(key, initialValue)
     }
-    return DataSaverMutableState(dataSaverInterface, key, data, typeConverter, savePolicy, async, coroutineScope)
+    return DataSaverMutableState(dataSaverInterface, key, data, typeConverter, savePolicy, async, coroutineScope, valueType)
 }
 
 @PublishedApi
-internal inline fun ITypeConverter.asRestorer(value: Any?): ((String) -> Any?)? = takeIf { it.accept(value) } ?.run { ::restore }
+internal fun resolveRestorer(
+    typeConverter: ITypeConverter?,
+    valueType: KType,
+    value: Any?
+): ((String) -> Any?)? {
+    return typeConverter?.asRestorer(valueType)
+        ?: DataSaverConverter.findRestorer(valueType)
+        ?: typeConverter?.asRestorer(value)
+        ?: DataSaverConverter.findRestorer<Any?>(value)
+}
 
 @PublishedApi
-internal inline fun ITypeConverter.asSaver(value: Any?): ((Any?) -> String)? = takeIf { it.accept(value) } ?.run { ::save }
+internal fun ITypeConverter.asRestorer(type: KType): ((String) -> Any?)? =
+    takeIf { matchesType(type) }?.run { ::restore }
+
+@PublishedApi
+internal fun ITypeConverter.asRestorer(value: Any?): ((String) -> Any?)? = takeIf { it.accept(value) } ?.run { ::restore }
+
+@PublishedApi
+internal fun ITypeConverter.asSaver(type: KType): ((Any?) -> String)? =
+    takeIf { matchesType(type) }?.run { ::save }
+
+@PublishedApi
+internal fun ITypeConverter.asSaver(type: KType?, value: Any?): ((Any?) -> String)? =
+    type?.let { asSaver(it) } ?: asSaver(value)
+
+@PublishedApi
+internal fun ITypeConverter.asSaver(value: Any?): ((Any?) -> String)? = takeIf { it.accept(value) } ?.run { ::save }
+
+@PublishedApi
+internal fun ITypeConverter.matchesType(type: KType): Boolean = (this as? ClassTypeConverter)?.matchTypeScore(type) != Int.MIN_VALUE

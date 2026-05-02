@@ -15,7 +15,7 @@ interface ITypeConverter {
  * @property type The type of the data, use [typeOf] to obtain
  */
 abstract class ClassTypeConverter(
-    private val type: KType
+    internal val type: KType
 ): ITypeConverter {
     private val clazz by lazy {
         type.classifier as KClass<*>
@@ -29,10 +29,71 @@ abstract class ClassTypeConverter(
     override fun toString(): String {
         return "ClassTypeConverter(type=$type)"
     }
+
+    internal fun matchTypeScore(targetType: KType): Int {
+        if (type.arguments != targetType.arguments) return NO_MATCH_SCORE
+        val typeClassifier = type.classifier as? KClass<*> ?: return NO_MATCH_SCORE
+        val targetClassifier = targetType.classifier as? KClass<*> ?: return NO_MATCH_SCORE
+        val classifierScore = when {
+            typeClassifier == targetClassifier -> EXACT_CLASSIFIER_SCORE
+            isReadOnlyCollectionMatch(typeClassifier, targetClassifier) -> COLLECTION_COMPATIBLE_SCORE
+            else -> return NO_MATCH_SCORE
+        }
+        return classifierScore + nullabilityScore()
+    }
+
+    internal fun matchValueScore(data: Any?): Int {
+        if (!accept(data)) return NO_MATCH_SCORE
+        if (data == null) return NULL_VALUE_SCORE + nullabilityScore()
+
+        val runtimeClassifier = data::class
+        val typeClassifier = type.classifier as? KClass<*> ?: return NO_MATCH_SCORE
+        val classifierScore = when {
+            typeClassifier == runtimeClassifier -> EXACT_CLASSIFIER_SCORE
+            isReadOnlyCollectionValueMatch(typeClassifier, data) -> COLLECTION_COMPATIBLE_SCORE
+            else -> RUNTIME_INSTANCE_SCORE
+        }
+        return classifierScore + nullabilityScore()
+    }
+
+    private fun nullabilityScore(): Int {
+        return if (type.isMarkedNullable) NULLABLE_SCORE else NON_NULLABLE_SCORE
+    }
+
+    private fun isReadOnlyCollectionMatch(
+        typeClassifier: KClass<*>,
+        targetClassifier: KClass<*>
+    ): Boolean {
+        return (typeClassifier == List::class && targetClassifier == MutableList::class) ||
+            (typeClassifier == Set::class && targetClassifier == MutableSet::class) ||
+            (typeClassifier == Map::class && targetClassifier == MutableMap::class)
+    }
+
+    private fun isReadOnlyCollectionValueMatch(
+        typeClassifier: KClass<*>,
+        data: Any
+    ): Boolean {
+        return (typeClassifier == List::class && data is MutableList<*>) ||
+            (typeClassifier == Set::class && data is MutableSet<*>) ||
+            (typeClassifier == Map::class && data is MutableMap<*, *>)
+    }
+
+    private companion object {
+        const val NO_MATCH_SCORE = Int.MIN_VALUE
+        const val EXACT_CLASSIFIER_SCORE = 200
+        const val COLLECTION_COMPATIBLE_SCORE = 100
+        const val RUNTIME_INSTANCE_SCORE = 50
+        const val NULL_VALUE_SCORE = 10
+        const val NON_NULLABLE_SCORE = 2
+        const val NULLABLE_SCORE = 1
+    }
 }
 
 object DataSaverConverter {
     val typeConverters: MutableList<ITypeConverter> by lazy(LazyThreadSafetyMode.PUBLICATION) { mutableListOf() }
+    private val exactTypeConverterCache: MutableMap<KType, ITypeConverter?> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        mutableMapOf()
+    }
 
     @PublishedApi
     internal val logger by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -65,6 +126,7 @@ object DataSaverConverter {
             }
         }
         typeConverters.add(converter)
+        clearExactTypeConverterCache()
     }
 
     /**
@@ -75,6 +137,7 @@ object DataSaverConverter {
         vararg converter: ITypeConverter
     ) {
         typeConverters.addAll(converter)
+        clearExactTypeConverterCache()
     }
 
     /**
@@ -102,26 +165,97 @@ object DataSaverConverter {
             }
         }
         typeConverters.add(converter)
+        clearExactTypeConverterCache()
     }
 
     inline fun <reified T> findRestorer(data: T): ((String) -> Any?)? {
-        return findTypeConverter(data)?.let {
+        return findTypeConverter(typeOf<T>(), data)?.let {
             it::restore
         }
     }
 
     fun <T> findSaver(data: T): ((Any?) -> String)? {
-        return typeConverters.findLast { it.accept(data) }?.also {
+        return findTypeConverterByValue(data)?.also {
             logger.d("findSaver for data($data): $it")
         }?.let {
             it::save
         }
     }
 
+    @PublishedApi
+    internal fun findSaver(type: KType): ((Any?) -> String)? {
+        return findTypeConverterByType(type)?.also {
+            logger.d("findSaver for type($type): $it")
+        }?.let {
+            it::save
+        }
+    }
+
+    @PublishedApi
+    internal fun findSaver(type: KType?, data: Any?): ((Any?) -> String)? {
+        return findTypeConverter(type, data)?.also {
+            logger.d("findSaver for type($type), data($data): $it")
+        }?.let {
+            it::save
+        }
+    }
+
     inline fun <reified T> findTypeConverter(data: T): ITypeConverter? {
-        return typeConverters.findLast { it.accept(data) }.also {
+        return findTypeConverter(typeOf<T>(), data).also {
             logger.d("findTypeConverter for data($data): $it")
         }
+    }
+
+    @PublishedApi
+    internal fun findRestorer(type: KType): ((String) -> Any?)? {
+        return findTypeConverterByType(type)?.also {
+            logger.d("findRestorer for type($type): $it")
+        }?.let {
+            it::restore
+        }
+    }
+
+    @PublishedApi
+    internal fun findTypeConverter(type: KType?, data: Any?): ITypeConverter? {
+        return type?.let(::findTypeConverterByType) ?: findTypeConverterByValue(data)
+    }
+
+    @PublishedApi
+    internal fun findTypeConverterByType(type: KType): ITypeConverter? {
+        if (exactTypeConverterCache.containsKey(type)) {
+            return exactTypeConverterCache[type]
+        }
+        var bestScore = Int.MIN_VALUE
+        var converter: ITypeConverter? = null
+        typeConverters.forEach { candidate ->
+            val score = (candidate as? ClassTypeConverter)?.matchTypeScore(type) ?: Int.MIN_VALUE
+            if (score >= bestScore && score != Int.MIN_VALUE) {
+                bestScore = score
+                converter = candidate
+            }
+        }
+        exactTypeConverterCache[type] = converter
+        return converter
+    }
+
+    @PublishedApi
+    internal fun findTypeConverterByValue(data: Any?): ITypeConverter? {
+        var bestScore = Int.MIN_VALUE
+        var converter: ITypeConverter? = null
+        typeConverters.forEach { candidate ->
+            val score = (candidate as? ClassTypeConverter)?.matchValueScore(data)
+                ?: if (candidate.accept(data)) 0 else Int.MIN_VALUE
+            if (score >= bestScore && score != Int.MIN_VALUE) {
+                bestScore = score
+                converter = candidate
+            }
+        }
+        return converter
+    }
+
+    @PublishedApi
+    internal fun clearExactTypeConverterCache() {
+        exactTypeConverterCache.clear()
     }
 
     fun unsupportedType(data: Any?, action: String = "save"): Nothing =
