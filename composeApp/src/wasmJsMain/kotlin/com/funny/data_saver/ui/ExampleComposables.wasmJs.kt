@@ -7,7 +7,6 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import com.funny.data_saver.core.DataSaverInMemory
 import com.funny.data_saver.core.DataSaverInterface
 import com.funny.data_saver.core.DataSaverLocalStorage
-import com.funny.data_saver.kmp.LoggerImpl.d
 
 @Composable
 actual fun ParcelableExample() {
@@ -32,10 +31,19 @@ private val sensorExternalLocalStorage by lazy {
 }
 
 @OptIn(ExperimentalWasmJsInterop::class)
-internal actual fun currentLogTimeText(): String = js(
-    """(() => {
-        const d = new Date();
-        const pad = (n, w = 2) => String(n).padStart(w, '0');
-        return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
-    })()"""
-) as String
+internal actual fun currentLogTimeText(): String =
+    "${currentHour().padTimePart()}:${currentMinute().padTimePart()}:${currentSecond().padTimePart()}.${currentMillisecond().padTimePart(3)}"
+
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun currentHour(): Int = js("new Date().getHours()")
+
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun currentMinute(): Int = js("new Date().getMinutes()")
+
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun currentSecond(): Int = js("new Date().getSeconds()")
+
+@OptIn(ExperimentalWasmJsInterop::class)
+private fun currentMillisecond(): Int = js("new Date().getMilliseconds()")
+
+private fun Int.padTimePart(width: Int = 2): String = toString().padStart(width, '0')
