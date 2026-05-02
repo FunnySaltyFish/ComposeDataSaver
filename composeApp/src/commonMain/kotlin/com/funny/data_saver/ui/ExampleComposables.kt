@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.funny.data_saver.Constant
 import com.funny.data_saver.Constant.KEY_BEAN_EXAMPLE
 import com.funny.data_saver.Constant.KEY_BOOLEAN_EXAMPLE
@@ -75,7 +76,7 @@ import com.funny.data_saver.core.getLocalDataSaverInterface
 import com.funny.data_saver.core.rememberDataSaverState
 import com.funny.data_saver.kmp.IO
 import com.funny.data_saver.kmp.Log
-import com.funny.data_saver.kmp.viewModel
+import com.funny.data_saver.kmp.PlatformBackHandler
 import composedatasaver.composeapp.generated.resources.Res
 import composedatasaver.composeapp.generated.resources.action_add
 import composedatasaver.composeapp.generated.resources.action_add_id
@@ -172,7 +173,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import moe.tlaster.precompose.navigation.BackHandler
 import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
 import kotlin.reflect.typeOf
@@ -680,7 +680,7 @@ private fun CustomSealedClassExample() {
 
 @Composable
 private fun CustomCoroutineScopeAndViewModelSample() {
-    val vm: MainViewModel = viewModel(MainViewModel::class) { MainViewModel() }
+    val vm: MainViewModel = viewModel { MainViewModel() }
 
     ExampleCard(
         title = stringResource(Res.string.custom_scope_view_model_title),
@@ -772,7 +772,7 @@ private fun TimeConsumingJobExample() {
                 Log.d("ExampleComposable", "TimeConsumingJobExample job: ${state.job}")
             }
 
-            BackHandler(state.job?.isCompleted == false) {
+            PlatformBackHandler(state.job?.isCompleted == false) {
                 showDialog = true
                 Log.d("ExampleComposable", "TimeConsumingJobExample is not finished")
             }

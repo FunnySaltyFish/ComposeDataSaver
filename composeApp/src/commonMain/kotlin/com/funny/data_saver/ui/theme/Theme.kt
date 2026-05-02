@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.funny.cmaterialcolors.MaterialColors.Companion.Blue500
 import com.funny.cmaterialcolors.MaterialColors.Companion.BlueA700
-import moe.tlaster.precompose.PreComposeApp
 
 private val DarkColorPalette = darkColorScheme(
     primary = Color(0xff3d557b),
@@ -44,12 +43,10 @@ fun FunnyTheme(
         LightColorPalette
     }
 
-    PreComposeApp {
-        MaterialTheme(
-            colorScheme = colors,
-            typography = Typography,
-            shapes = Shapes,
-            content = content
-        )
-    }
+    MaterialTheme(
+        colorScheme = colors,
+        typography = Typography,
+        shapes = Shapes,
+        content = content
+    )
 }

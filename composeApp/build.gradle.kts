@@ -133,13 +133,13 @@ kotlin {
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
 
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.kotlinx.serialization.json)
-
-            implementation(libs.precompose)
-            implementation(libs.precompose.viewmodel) // For ViewModel intergration
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.swing)
         }
 
         // 创建 iOS 公共源码集
@@ -189,6 +189,13 @@ android {
 compose.desktop {
     application {
         mainClass = "MainKt"
+        buildTypes.release.proguard {
+            // Compose Desktop release tasks run ProGuard by default.
+            // CI only needs a stable distributable, so disable it here.
+            isEnabled.set(false)
+            optimize.set(false)
+            obfuscate.set(false)
+        }
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
