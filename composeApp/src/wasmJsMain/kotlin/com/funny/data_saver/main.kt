@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.window.ComposeViewport
 import com.funny.data_saver.ui.App
-import composedatasaver.composeapp.generated.resources.NotoSansSC_VF
+import composedatasaver.composeapp.generated.resources.NotoSansSC_WasmSubset
 import composedatasaver.composeapp.generated.resources.Res
 import kotlinx.browser.document
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.preloadFont
 fun main() {
     ComposeViewport(document.body!!) {
         val fontResolver = LocalFontFamilyResolver.current
-        val fallbackFont by preloadFont(Res.font.NotoSansSC_VF)
+        val fallbackFont by preloadFont(Res.font.NotoSansSC_WasmSubset)
         var fallbackFontReady by remember { mutableStateOf(false) }
 
         LaunchedEffect(fallbackFont) {

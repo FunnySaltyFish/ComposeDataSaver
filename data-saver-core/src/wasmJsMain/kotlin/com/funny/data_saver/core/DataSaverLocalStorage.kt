@@ -1,6 +1,9 @@
 package com.funny.data_saver.core
 
 import kotlinx.browser.localStorage
+import kotlinx.browser.window
+import kotlinx.coroutines.flow.MutableSharedFlow
+import org.w3c.dom.StorageEvent
 import org.w3c.dom.get
 import org.w3c.dom.set
 
@@ -12,10 +15,40 @@ open class DataSaverLocalStorage(
     private val keyPrefix: String = "DataSaver_",
     senseExternalDataChange: Boolean = false
 ) : DataSaverInterface(senseExternalDataChange) {
+    private companion object {
+        private val sharedFlows = mutableMapOf<String, MutableSharedFlow<Pair<String, Any?>>>()
+        private var storageListenerRegistered = false
 
-    // localStorage doesn't support listener by default, so we manually notify the listener
+        private fun flowForPrefix(keyPrefix: String): MutableSharedFlow<Pair<String, Any?>> {
+            return sharedFlows.getOrPut(keyPrefix) {
+                MutableSharedFlow(replay = 1)
+            }
+        }
+
+        private fun ensureStorageListener() {
+            if (storageListenerRegistered) return
+            storageListenerRegistered = true
+            window.addEventListener("storage") { event ->
+                val storageEvent = event as? StorageEvent ?: return@addEventListener
+                val changedKey = storageEvent.key ?: return@addEventListener
+                sharedFlows.forEach { (prefix, flow) ->
+                    if (changedKey.startsWith(prefix)) {
+                        flow.tryEmit(changedKey.removePrefix(prefix) to storageEvent.newValue)
+                    }
+                }
+            }
+        }
+    }
+
+    init {
+        if (senseExternalDataChange) {
+            externalDataChangedFlow = flowForPrefix(keyPrefix)
+            ensureStorageListener()
+        }
+    }
+
     private fun notifyExternalDataChanged(key: String, value: Any?) {
-        if (senseExternalDataChange) externalDataChangedFlow?.tryEmit(key to value)
+        externalDataChangedFlow?.tryEmit(key to value)
     }
 
     private fun getPrefixedKey(key: String) = keyPrefix + key

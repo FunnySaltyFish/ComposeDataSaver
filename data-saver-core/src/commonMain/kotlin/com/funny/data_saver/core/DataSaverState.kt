@@ -192,15 +192,15 @@ inline fun <reified T> rememberDataSaverState(
 ): DataSaverMutableState<T> {
     val saverInterface = getLocalDataSaverInterface()
     val valueType = typeOf<T>()
-    var state: DataSaverMutableState<T>? = null
-    val restorer by remember(initialValue, typeConverter) {
-        lazy {
-            resolveRestorer(typeConverter, valueType, initialValue)
-        }
+    val restorer = remember(initialValue, typeConverter, valueType) {
+        resolveRestorer(typeConverter, valueType, initialValue)
+    }
+    val state = remember(saverInterface, key, initialValue, typeConverter, savePolicy, async, coroutineScope) {
+        mutableDataSaverStateOf(saverInterface, key, initialValue, typeConverter, savePolicy, async, coroutineScope)
     }
 
-    LaunchedEffect(key1 = senseExternalDataChange) {
-        if (!senseExternalDataChange || state == null) return@LaunchedEffect
+    LaunchedEffect(saverInterface, key, senseExternalDataChange, state, restorer) {
+        if (!senseExternalDataChange) return@LaunchedEffect
         if (!saverInterface.senseExternalDataChange) {
             Log.e("ComposeDataSaver", "to enable senseExternalDataChange, you should set `senseExternalDataChange` to true in DataSaverInterface")
             return@LaunchedEffect
@@ -208,8 +208,8 @@ inline fun <reified T> rememberDataSaverState(
         saverInterface.externalDataChangedFlow?.collect { pair ->
             val (k, v) = pair
             Log.i("ComposeDataSaver", "externalDataChangedFlow: $key -> $v")
-            if (k == key && v != state?.value) {
-                val d = if (v != null) {
+            if (k == key) {
+                val restoredValue = if (v != null) {
                     if (v is String) {
                         val restore = restorer ?: unsupportedType(initialValue, "restore")
                         restore(v) as T
@@ -219,29 +219,27 @@ inline fun <reified T> rememberDataSaverState(
                 } else {
                     // if the value is null
                     // and the type is nullable
-                    if (typeOf<T>().isMarkedNullable) v as T
+                    if (valueType.isMarkedNullable) v as T
                     else initialValue
                 }
-                // to avoid duplicate save
-                state?.setValueWithoutSave(d)
+                if (restoredValue != state.value) {
+                    // to avoid duplicate save
+                    state.setValueWithoutSave(restoredValue)
+                }
             }
         }
     }
 
-    DisposableEffect(key, savePolicy) {
+    DisposableEffect(key, savePolicy, state) {
         onDispose {
             Log.i("ComposeDataSaver", "rememberDataSaverState: state of key=\"$key\" onDisposed!")
-            if (savePolicy == SavePolicy.DISPOSED && state != null && state!!.valueChangedSinceInit()) {
-                state!!.saveData()
+            if (savePolicy == SavePolicy.DISPOSED && state.valueChangedSinceInit()) {
+                state.saveData()
             }
         }
     }
 
-    return remember(saverInterface, key, initialValue, typeConverter, savePolicy, async, coroutineScope) {
-        mutableDataSaverStateOf(saverInterface, key, initialValue, typeConverter, savePolicy, async, coroutineScope).also {
-            state = it
-        }
-    }
+    return state
 }
 
 /**

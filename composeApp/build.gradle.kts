@@ -12,6 +12,35 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+val subsetFontCommand = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+    listOf("cmd", "/c", "python", "scripts/subset_wasm_font.py")
+} else {
+    listOf("python3", "scripts/subset_wasm_font.py")
+}
+
+val subsetWasmFont by tasks.registering(Exec::class) {
+    group = "compose"
+    description = "Generate the wasm subset font from Compose string resources."
+    workingDir = rootDir
+    commandLine(subsetFontCommand)
+    inputs.file(rootProject.file("scripts/font-source/NotoSansSC_VF.ttf"))
+    inputs.files(
+        project.file("src/commonMain/composeResources/values/strings.xml"),
+        project.file("src/commonMain/composeResources/values-zh/strings.xml")
+    )
+    outputs.file(project.file("src/wasmJsMain/composeResources/font/NotoSansSC_WasmSubset.ttf"))
+}
+
+listOf(
+    "generateResourceAccessorsForWasmJsMain",
+    "copyNonXmlValueResourcesForWasmJsMain",
+    "prepareComposeResourcesTaskForWasmJsMain"
+).let { taskNames ->
+    tasks.matching { it.name in taskNames }.configureEach {
+        dependsOn(subsetWasmFont)
+    }
+}
+
 kotlin {
     targets.configureEach {
         compilations.configureEach {

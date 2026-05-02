@@ -1,5 +1,9 @@
 package com.funny.data_saver.core
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -271,5 +275,32 @@ class DataSaverLocalStorageTest : DataSaverInterfaceTest() {
         
         // 清理
         dataSaverLocalStorage.remove(key)
+    }
+
+    @Test
+    fun testExternalChangeFlowSharedAcrossInstances() = runTest {
+        val first = DataSaverLocalStorage(
+            keyPrefix = "shared_",
+            senseExternalDataChange = true
+        )
+        val second = DataSaverLocalStorage(
+            keyPrefix = "shared_",
+            senseExternalDataChange = true
+        )
+        val key = "shared_key"
+        val value = "shared_value"
+
+        val event = async {
+            withTimeout(5_000) {
+                second.externalDataChangedFlow!!.first { (changedKey, changedValue) ->
+                    changedKey == key && changedValue == value
+                }
+            }
+        }
+
+        first.saveData(key, value)
+
+        assertEquals(key to value, event.await())
+        second.remove(key)
     }
 } 
