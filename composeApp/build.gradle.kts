@@ -98,7 +98,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":data-saver-core"))
 
-            implementation(compose.material)
+            implementation(compose.material3)
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
