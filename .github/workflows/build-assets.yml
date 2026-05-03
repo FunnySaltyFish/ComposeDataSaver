@@ -114,7 +114,7 @@ jobs:
         run: |
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
-            -target iosApp \
+            -scheme iosApp \
             -configuration Debug \
             -sdk iphonesimulator \
             -derivedDataPath build/ios-simulator \
